@@ -1,94 +1,54 @@
 --[[
     BFS Scripts v4.2 ULTIMATE
-    Script de automatización para Blox Fruits
-    Compatible con Delta Executor v2.702.622
-    Autor: Emir5021-Gob
-    Repositorio: github.com/Emir5021-Gob/BFS
+    Loader Principal
 ]]
 
-print("🚀 BFS Scripts v4.2 ULTIMATE - Iniciando...")
-print("📱 Executor:", identifyexecutor and identifyexecutor() or "Unknown")
-print("🎮 PlaceId:", game.PlaceId)
+-- Configuración
+local REPO = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Games/"
 
--- Configuración del repositorio
-local REPO_URL = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/"
-
--- Tabla de juegos soportados
-local SUPPORTED_GAMES = {
-    [2753915549] = {Name = "Blox Fruits [Sea 1]", Script = "BloxFruits.luau"},
-    [4442272183] = {Name = "Blox Fruits [Sea 2]", Script = "BloxFruits.luau"},
-    [7449423635] = {Name = "Blox Fruits [Sea 3]", Script = "BloxFruits.luau"},
+-- IDs de juego soportados
+local GAMES = {
+    [2753915549] = "BloxFruits.luau", -- Sea 1
+    [4442272183] = "BloxFruits.luau", -- Sea 2
+    [7449423635] = "BloxFruits.luau", -- Sea 3
 }
 
--- Detectar juego actual
-local currentPlaceId = game.PlaceId
-local gameInfo = SUPPORTED_GAMES[currentPlaceId]
+-- Detectar juego
+local placeId = game.PlaceId
+local scriptName = GAMES[placeId]
 
-if not gameInfo then
-    warn("⚠️ JUEGO NO SOPORTADO")
-    warn("PlaceId actual:", currentPlaceId)
-    warn("Juegos soportados:")
-    for placeId, info in pairs(SUPPORTED_GAMES) do
-        warn("-", info.Name, "(PlaceId:", placeId .. ")")
-    end
-    return
+-- Verificar si el juego es soportado
+if not scriptName then
+    return warn("⚠️ Juego no soportado. PlaceId: " .. tostring(placeId))
 end
 
-print("✅ Juego detectado:", gameInfo.Name)
-print("📦 Descargando script...")
+-- Descargar y ejecutar
+print("🚀 BFS Scripts - Cargando...")
+print("🎮 PlaceId: " .. tostring(placeId))
 
--- Función para descargar código
-local function DownloadScript(url)
-    print("🔗 URL:", url)
-    local success, result = pcall(function()
-        return game:HttpGet(url, true)
-    end)
+local success, result = pcall(function()
+    local url = REPO .. scriptName
+    print("📥 Descargando desde: " .. url)
     
-    if not success then
-        warn("❌ Error al descargar")
-        warn("Detalles:", tostring(result))
-        return nil
+    local code = game:HttpGet(url, true)
+    
+    if not code or code == "" then
+        error("Script vacío o no encontrado")
     end
     
-    if not result or result == "" then
-        warn("❌ Script vacío o no encontrado")
-        return nil
+    print("✅ Descarga completa (" .. #code .. " bytes)")
+    print("⚙️ Ejecutando...")
+    
+    local func, err = loadstring(code)
+    if not func then
+        error("Error de compilación: " .. tostring(err))
     end
     
-    print("✅ Descarga exitosa (" .. #result .. " bytes)")
-    return result
+    return func()
+end)
+
+if not success then
+    warn("❌ Error: " .. tostring(result))
+else
+    print("✅ BFS Scripts cargado exitosamente!")
 end
-
--- Descargar el script del juego
-local scriptUrl = REPO_URL .. "Games/" .. gameInfo.Script
-local code = DownloadScript(scriptUrl)
-
-if not code then
-    warn("❌ No se pudo descargar el script")
-    warn("Verifica tu conexión a internet")
-    return
-end
-
-print("⚙️ Compilando script...")
-
--- Compilar el script
-local func, compileErr = loadstring(code)
-if not func then
-    warn("❌ Error de compilación:")
-    warn(tostring(compileErr))
-    return
-end
-
-print("✅ Compilación exitosa")
-print("🎮 Ejecutando script...")
-
--- Ejecutar el script
-local executeSuccess, executeErr = pcall(func)
-if not executeSuccess then
-    warn("❌ Error al ejecutar:")
-    warn(tostring(executeErr))
-    return
-end
-
-print("✅ Script cargado exitosamente!")
-print("🎯 BFS Scripts activo")
