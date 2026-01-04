@@ -773,6 +773,26 @@ local function CreateButton(parent, text, callback)
     return ButtonFrame
 end
 
+-- Crear etiqueta de texto (para avisos)
+local function CreateLabel(parent, text)
+    local LabelFrame = Instance.new("Frame")
+    LabelFrame.Size = UDim2.new(1, -20, 0, 30)
+    LabelFrame.BackgroundTransparency = 1
+    LabelFrame.Parent = parent
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 200, 100)
+    Label.TextSize = 14
+    Label.Font = Enum.Font.GothamBold
+    Label.TextWrapped = true
+    Label.Parent = LabelFrame
+    
+    return LabelFrame
+end
+
 -- Sistema de Fast Attack optimizado
 local FastAttackConnection
 local function StartFastAttack()
@@ -826,6 +846,32 @@ local function EquipWeapon(weaponName)
         return true
     end
     return false
+end
+
+-- Usar habilidades de la fruta del diablo (Z, X, C, V, F)
+local FruitSkillCooldown = 0
+local function UseFruitSkills()
+    if not Settings.UseFruitSkills then return end
+    
+    local currentTime = tick()
+    if currentTime - FruitSkillCooldown < 0.5 then return end
+    
+    FruitSkillCooldown = currentTime
+    
+    pcall(function()
+        local weapon = GetCurrentWeapon()
+        if weapon and weapon:FindFirstChild("RemoteFunctionShoot") then
+            -- Usar habilidades Z, X, C
+            local skills = {"Z", "X", "C"}
+            
+            for _, key in pairs(skills) do
+                VirtualInputManager:SendKeyEvent(true, key, false, game)
+                wait(0.05)
+                VirtualInputManager:SendKeyEvent(false, key, false, game)
+                wait(0.1)
+            end
+        end
+    end)
 end
 
 -- Obtener tipo de arma (Melee, Sword, Gun, Fruit)
@@ -1224,6 +1270,7 @@ end
 
 -- Auto Raid
 local RaidConnection
+local RaidStartTime = 0
 local function StartAutoRaid()
     if RaidConnection then return end
     
@@ -1231,60 +1278,127 @@ local function StartAutoRaid()
         if not Settings.AutoRaid then return end
         
         pcall(function()
-            -- Verificar si está en una raid
-            local raidUI = Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("RaidsUI")
+            -- Actualizar referencias de personaje si murió
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
             
-            if raidUI and raidUI.Visible then
+            -- Verificar si está en una raid activa
+            local raidUI = Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("RaidsUI")
+            local inRaid = raidUI and raidUI.Visible
+            
+            -- Verificar si existe isla de raid spawneada
+            local raidIsland = false
+            pcall(function()
+                if game.Workspace:FindFirstChild("Map") and game.Workspace.Map:FindFirstChild("Boat Castle") then
+                    raidIsland = true
+                end
+            end)
+            
+            if inRaid and raidIsland then
                 -- Buscar enemigos de la raid
                 local enemy = GetNearestEnemy()
                 
                 if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                    -- Safe Mode check
+                    if Settings.SafeMode and Humanoid.Health < (Humanoid.MaxHealth * 0.6) then
+                        return
+                    end
+                    
                     local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                     
-                    -- Equipar arma
-                    if not GetCurrentWeapon() then
-                        for _, tool in pairs(Player.Backpack:GetChildren()) do
-                            if tool:IsA("Tool") then
-                                Humanoid:EquipTool(tool)
-                                break
-                            end
-                        end
-                    end
+                    -- Equipar arma del tipo seleccionado
+                    EquipWeaponByType(Settings.SelectedWeaponType)
                     
                     if distance > Settings.AttackDistance + 2 then
                         local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                         HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                     else
+                        -- Posicionar para atacar
                         HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                         
+                        -- BringMob si está activado
+                        if Settings.BringMob then
+                            BringMobToPlayer(enemy)
+                        end
+                        
+                        -- Activar Fast Attack si está habilitado
+                        if Settings.FastAttack then
+                            pcall(function()
+                                local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+                                if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                                    local ActiveController = CombatFrameworkLib.activeController
+                                    ActiveController.hitboxMagnitude = 60
+                                    ActiveController.active = false
+                                    ActiveController.timeToNextAttack = 0
+                                    ActiveController.attacking = false
+                                    ActiveController.increment = 3
+                                    ActiveController.blocking = false
+                                    
+                                    if ActiveController.blade then
+                                        ActiveController.blade:Hit()
+                                    end
+                                end
+                            end)
+                        end
+                        
+                        -- Atacar con el arma equipada
                         local weapon = GetCurrentWeapon()
                         if weapon then
                             weapon:Activate()
                             
-                            -- Usar habilidades si es fruta
-                            if Settings.UseFruitSkills and weapon:FindFirstChild("RemoteFunctionShoot") then
-                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
-                                wait(0.1)
-                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "Z", false, game)
-                                wait(0.5)
-                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
-                                wait(0.1)
-                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "X", false, game)
-                                wait(0.5)
-                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "C", false, game)
-                                wait(0.1)
-                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "C", false, game)
+                            -- Usar habilidades de fruta si está activado
+                            if Settings.SelectedWeaponType == "Fruit" or (weapon and weapon:FindFirstChild("RemoteFunctionShoot")) then
+                                UseFruitSkills()
                             end
+                        end
+                        
+                        -- Si es Melee (sin arma), click para atacar
+                        if not weapon and Settings.SelectedWeaponType == "Melee" then
+                            pcall(function()
+                                game:GetService("VirtualUser"):CaptureController()
+                                game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                            end)
                         end
                     end
                 end
             else
-                -- Iniciar raid si no está en una
-                local Remote = GetBloxFruitsRemote()
-                if Remote and Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
-                    pcall(function()
-                        Remote:InvokeServer("RaidsNpc", "Select", Settings.SelectedRaid)
-                    end)
+                -- Intentar iniciar raid si no está en una
+                if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
+                    local currentTime = tick()
+                    
+                    -- Evitar spam de inicio de raid (intentar cada 5 segundos)
+                    if currentTime - RaidStartTime > 5 then
+                        RaidStartTime = currentTime
+                        
+                        -- Teleport al NPC de raids
+                        pcall(function()
+                            if Settings.CurrentSea == 2 then
+                                -- Second Sea: Raid NPC en el barco
+                                HumanoidRootPart.CFrame = CFrame.new(-6438, 250, -4498)
+                            elseif Settings.CurrentSea == 3 then
+                                -- Third Sea: Raid NPC en Tiki Outpost
+                                HumanoidRootPart.CFrame = CFrame.new(-16224, 9, 462)
+                            end
+                        end)
+                        
+                        wait(1)
+                        
+                        -- Comprar chip e iniciar raid
+                        local Remote = GetBloxFruitsRemote()
+                        if Remote then
+                            pcall(function()
+                                -- Comprar chip (si no tiene)
+                                Remote:InvokeServer("RaidsNpc", "Select", Settings.SelectedRaid)
+                                wait(0.5)
+                                -- Iniciar raid
+                                Remote:InvokeServer("RaidsNpc", "Buy", Settings.SelectedRaid)
+                            end)
+                            print("🎫 Iniciando raid:", Settings.SelectedRaid)
+                        end
+                    end
                 end
             end
         end)
@@ -2445,6 +2559,16 @@ local function ShowRaidsCategory()
         CreateDropdown(ContentArea, "Raid:", RaidList, function(selected)
             Settings.SelectedRaid = selected
         end)
+        
+        CreateDropdown(ContentArea, "Weapon Type:", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
+            Settings.SelectedWeaponType = selected
+        end)
+        
+        CreateToggle(ContentArea, "Use Fruit Skills", function(value)
+            Settings.UseFruitSkills = value
+        end)
+    else
+        CreateLabel(ContentArea, "⚠️ Raids disponibles en Sea 2 y 3")
     end
 end
 
