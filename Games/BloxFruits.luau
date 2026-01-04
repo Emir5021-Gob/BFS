@@ -2,6 +2,12 @@
 -- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
 
+-- Protección y verificaciones
+repeat wait() until game:IsLoaded()
+repeat wait() until game.Players
+repeat wait() until game.Players.LocalPlayer
+repeat wait() until game.Players.LocalPlayer.Character
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -14,16 +20,24 @@ local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
+print("✅ BFS Hub v4.2 - Servicios cargados")
+print("✅ Personaje detectado:", Player.Name)
+
 -- Detectar Sea actual
 local function GetCurrentSea()
     local placeId = game.PlaceId
+    print("🌊 Detectando Sea... PlaceId:", placeId)
     if placeId == 2753915549 then
+        print("✅ Sea 1 - Old World")
         return 1 -- Old World (Sea 1)
     elseif placeId == 4442272183 then
+        print("✅ Sea 2 - New World")
         return 2 -- New World (Sea 2)
     elseif placeId == 7449423635 then
+        print("✅ Sea 3 - Third Sea")
         return 3 -- Third Sea (Sea 3)
     end
+    warn("⚠️ Sea no detectado, usando Sea 1 por defecto")
     return 1
 end
 
@@ -319,10 +333,18 @@ local TeleportLocations = {
 -- Sistema de remotes de Blox Fruits
 local function GetBloxFruitsRemote()
     local success, result = pcall(function()
-        return ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+        return ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommF_", 5)
     end)
-    return success and result or nil
+    
+    if success and result then
+        return result
+    else
+        warn("⚠️ No se pudo obtener CommF_ remote")
+        return nil
+    end
 end
+
+print("🔧 Sistema de remotes configurado")
 
 -- Función para crear UI compacta móvil (260x380)
 local function CreateUI()
@@ -1808,8 +1830,26 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function(time)
     VirtualInputManager:SendKeyEvent(false, "W", false, game)
 end)
 
--- Crear UI
-local GUI, ScrollFrame = CreateUI()
+print("🎨 Creando interfaz de usuario...")
+
+-- Crear UI con protección de errores
+local success, result1, result2 = pcall(CreateUI)
+if not success then
+    warn("❌ Error al crear UI:", result1)
+    error("No se pudo crear la interfaz")
+    return
+end
+
+local GUI = result1
+local ScrollFrame = result2
+
+if not GUI or not ScrollFrame then
+    warn("❌ Error: UI o ScrollFrame es nil")
+    error("No se pudo crear la interfaz correctamente")
+    return
+end
+
+print("✅ UI creada exitosamente")
 
 -- Secciones
 CreateSection(ScrollFrame, "📦 FARMING")
@@ -2135,8 +2175,6 @@ print("")
 print("⚠️ TODAS LAS OPCIONES DESACTIVADAS")
 print("   Activa solo las que necesites usar")
 print("========================================")
-	print("🌐 Traductor activado")
-end
 
 print("🎮 BFS Scripts cargado completamente!")
 
