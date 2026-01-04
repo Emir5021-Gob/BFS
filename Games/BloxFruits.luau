@@ -330,6 +330,38 @@ local TeleportLocations = {
     }
 }
 
+-- FUNCIONES HELPER SEGURAS
+local function GetPlayerLevel()
+    local success, level = pcall(function()
+        if Player.Data and Player.Data.Level then
+            return Player.Data.Level.Value
+        elseif Player:FindFirstChild("Data") and Player.Data:FindFirstChild("Level") then
+            return Player.Data.Level.Value
+        else
+            -- Intenta obtener del leaderstats si existe
+            if Player:FindFirstChild("leaderstats") and Player.leaderstats:FindFirstChild("Level") then
+                return Player.leaderstats.Level.Value
+            end
+        end
+        return 1
+    end)
+    
+    return success and level or 1
+end
+
+local function GetPlayerPoints()
+    local success, points = pcall(function()
+        if Player.Data and Player.Data.Points then
+            return Player.Data.Points.Value
+        elseif Player:FindFirstChild("Data") and Player.Data:FindFirstChild("Points") then
+            return Player.Data.Points.Value
+        end
+        return 0
+    end)
+    
+    return success and points or 0
+end
+
 -- Sistema de remotes de Blox Fruits
 local function GetBloxFruitsRemote()
     local success, result = pcall(function()
@@ -547,7 +579,7 @@ local function CreateSection(parent, text)
     return Section
 end
 
--- Función para crear Dropdown
+-- Función para crear Dropdown (solo selección, no acción)
 local function CreateDropdown(parent, text, options, callback)
     local DropdownFrame = Instance.new("Frame")
     DropdownFrame.Size = UDim2.new(1, 0, 0, 35)
@@ -560,7 +592,7 @@ local function CreateDropdown(parent, text, options, callback)
     Corner.Parent = DropdownFrame
     
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.4, 0, 1, 0)
+    Label.Size = UDim2.new(0.35, 0, 1, 0)
     Label.Position = UDim2.new(0, 10, 0, 0)
     Label.BackgroundTransparency = 1
     Label.Font = Enum.Font.Gotham
@@ -571,14 +603,14 @@ local function CreateDropdown(parent, text, options, callback)
     Label.Parent = DropdownFrame
     
     local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0.5, -10, 0, 25)
-    Button.Position = UDim2.new(0.5, 0, 0.5, -12.5)
+    Button.Size = UDim2.new(0.6, -10, 0, 25)
+    Button.Position = UDim2.new(0.4, 0, 0.5, -12.5)
     Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     Button.BorderSizePixel = 0
     Button.Font = Enum.Font.Gotham
-    Button.Text = options[1]
+    Button.Text = options[1] or "Select..."
     Button.TextColor3 = Color3.fromRGB(200, 200, 200)
-    Button.TextSize = 11
+    Button.TextSize = 10
     Button.Parent = DropdownFrame
     
     local BtnCorner = Instance.new("UICorner")
@@ -598,19 +630,55 @@ local function CreateDropdown(parent, text, options, callback)
     return DropdownFrame
 end
 
+-- Función para crear un botón de acción
+local function CreateButton(parent, text, callback)
+    local ButtonFrame = Instance.new("Frame")
+    ButtonFrame.Size = UDim2.new(1, 0, 0, 35)
+    ButtonFrame.BackgroundTransparency = 1
+    ButtonFrame.BorderSizePixel = 0
+    ButtonFrame.Parent = parent
+    
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 1, 0)
+    Button.BackgroundColor3 = Color3.fromRGB(60, 120, 220)
+    Button.BorderSizePixel = 0
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 13
+    Button.Parent = ButtonFrame
+    
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Button
+    
+    Button.MouseButton1Click:Connect(function()
+        -- Animación de clic
+        TweenService:Create(Button, TweenInfo.new(0.1), {
+            BackgroundColor3 = Color3.fromRGB(80, 150, 255)
+        }):Play()
+        wait(0.1)
+        TweenService:Create(Button, TweenInfo.new(0.1), {
+            BackgroundColor3 = Color3.fromRGB(60, 120, 220)
+        }):Play()
+        callback()
+    end)
+    
+    return ButtonFrame
+end
+
 -- Sistema de Fast Attack optimizado
 local FastAttackConnection
 local function StartFastAttack()
     if FastAttackConnection then return end
     
-    local CombatFramework = debug.getupvalues(require(Player.PlayerScripts.CombatFramework))[2]
-    
     FastAttackConnection = RunService.Heartbeat:Connect(function()
         if not Settings.FastAttack then return end
         
         pcall(function()
-            local ActiveController = CombatFramework.activeController
-            if ActiveController then
+            local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+            if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                local ActiveController = CombatFrameworkLib.activeController
                 ActiveController.hitboxMagnitude = 60
                 ActiveController.active = false
                 ActiveController.timeToNextAttack = 0
@@ -647,11 +715,53 @@ end
 -- Equipar arma
 local function EquipWeapon(weaponName)
     local tool = Player.Backpack:FindFirstChild(weaponName)
-    if tool then
+    if tool and tool:IsA("Tool") then
         Humanoid:EquipTool(tool)
         return true
     end
     return false
+end
+
+-- Obtener enemigo más cercano (MEJORADO)
+local function GetNearestEnemy()
+    local nearestEnemy = nil
+    local shortestDistance = 2000
+    
+    -- Buscar en Workspace.Enemies
+    if game.Workspace:FindFirstChild("Enemies") then
+        for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+            if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                if v.Humanoid.Health > 0 then
+                    local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestEnemy = v
+                    end
+                end
+            end
+        end
+    end
+    
+    return nearestEnemy
+end
+
+-- Obtener enemigo de quest específica (MEJORADO)
+local function GetQuestEnemy(mobName)
+    if not mobName then return GetNearestEnemy() end
+    
+    -- Buscar en Workspace.Enemies
+    if game.Workspace:FindFirstChild("Enemies") then
+        for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+            if v.Name == mobName and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                if v.Humanoid.Health > 0 then
+                    return v
+                end
+            end
+        end
+    end
+    
+    -- Si no se encuentra, devolver enemigo más cercano
+    return GetNearestEnemy()
 end
 
 -- Obtener cofre más cercano
@@ -709,18 +819,29 @@ end
 
 -- Buscar boss específico
 local function FindBoss(bossName)
-    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-        if v.Name == bossName and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            return v
+    if not bossName or bossName == "" then return nil end
+    
+    -- Buscar en Workspace.Enemies
+    pcall(function()
+        if game.Workspace:FindFirstChild("Enemies") then
+            for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+                if v.Name == bossName and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                    if v.Humanoid.Health > 0 then
+                        return v
+                    end
+                end
+            end
         end
-    end
+    end)
     
     -- Buscar en ReplicatedStorage (bosses no spawneados)
-    for _, v in pairs(ReplicatedStorage:GetChildren()) do
-        if v.Name == bossName then
-            return nil -- Boss existe pero no está spawneado
+    pcall(function()
+        for _, v in pairs(ReplicatedStorage:GetChildren()) do
+            if v.Name == bossName then
+                return nil -- Boss existe pero no está spawneado
+            end
         end
-    end
+    end)
     
     return nil
 end
@@ -1153,16 +1274,33 @@ end
 -- Buscar mob que dropea el material seleccionado
 local function FindMaterialMob()
     local targetMobs = MaterialMobs[Settings.SelectedMaterial]
-    if not targetMobs then return nil end
+    if not targetMobs then 
+        warn("⚠️ No se encontraron mobs para el material:", Settings.SelectedMaterial)
+        return nil 
+    end
     
-    for _, mobName in pairs(targetMobs) do
-        for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
-            if mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                return mob
+    local nearestMob = nil
+    local shortestDistance = Settings.FarmDistance
+    
+    pcall(function()
+        if game.Workspace:FindFirstChild("Enemies") then
+            for _, mobName in pairs(targetMobs) do
+                for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
+                        if mob.Humanoid.Health > 0 then
+                            local distance = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                            if distance < shortestDistance then
+                                shortestDistance = distance
+                                nearestMob = mob
+                            end
+                        end
+                    end
+                end
             end
         end
-    end
-    return nil
+    end)
+    
+    return nearestMob
 end
 
 -- Auto Farm Materials
@@ -1227,13 +1365,15 @@ local function StartAutoBones()
             local boneMob = nil
             local shortestDist = Settings.FarmDistance
             
-            for _, mobName in pairs(BoneMobs) do
-                for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
-                    if mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                        local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
-                        if dist < shortestDist then
-                            shortestDist = dist
-                            boneMob = mob
+            if game.Workspace:FindFirstChild("Enemies") then
+                for _, mobName in pairs(BoneMobs) do
+                    for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+                        if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                            local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                            if dist < shortestDist then
+                                shortestDist = dist
+                                boneMob = mob
+                            end
                         end
                     end
                 end
@@ -1290,13 +1430,15 @@ local function StartAutoEctoplasm()
             local ectoMob = nil
             local shortestDist = Settings.FarmDistance
             
-            for _, mobName in pairs(EctoplasmMobs) do
-                for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
-                    if mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                        local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
-                        if dist < shortestDist then
-                            shortestDist = dist
-                            ectoMob = mob
+            if game.Workspace:FindFirstChild("Enemies") then
+                for _, mobName in pairs(EctoplasmMobs) do
+                    for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+                        if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                            local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                            if dist < shortestDist then
+                                shortestDist = dist
+                                ectoMob = mob
+                            end
                         end
                     end
                 end
@@ -1554,10 +1696,16 @@ local function EnableESP()
     local enemyESP = RunService.Heartbeat:Connect(function()
         if not Settings.EnableESP then return end
         
+        wait(0.5) -- Reducir frecuencia
+        
         pcall(function()
-            for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
-                if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                    CreateESP(enemy.HumanoidRootPart, Color3.fromRGB(255, 0, 0), enemy.Name)
+            if game.Workspace:FindFirstChild("Enemies") then
+                for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if enemy:IsA("Model") and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
+                        if enemy.Humanoid.Health > 0 and not enemy.HumanoidRootPart:FindFirstChild("BFS_ESP") then
+                            CreateESP(enemy.HumanoidRootPart, Color3.fromRGB(255, 0, 0), enemy.Name)
+                        end
+                    end
                 end
             end
         end)
@@ -1568,10 +1716,14 @@ local function EnableESP()
     local fruitESP = RunService.Heartbeat:Connect(function()
         if not Settings.EnableESP then return end
         
+        wait(1) -- Chequear cada segundo
+        
         pcall(function()
             for _, v in pairs(game.Workspace:GetDescendants()) do
                 if v:IsA("Tool") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
-                    CreateESP(v.Handle, Color3.fromRGB(255, 215, 0), "🍎 " .. v.Name)
+                    if not v.Handle:FindFirstChild("BFS_ESP") then
+                        CreateESP(v.Handle, Color3.fromRGB(255, 215, 0), "🍎 " .. v.Name)
+                    end
                 end
             end
         end)
@@ -1582,10 +1734,14 @@ local function EnableESP()
     local chestESP = RunService.Heartbeat:Connect(function()
         if not Settings.EnableESP then return end
         
+        wait(1) -- Chequear cada segundo
+        
         pcall(function()
             for _, chest in pairs(game.Workspace:GetChildren()) do
                 if chest.Name:find("Chest") and chest:FindFirstChild("Root") then
-                    CreateESP(chest.Root, Color3.fromRGB(0, 255, 0), "📦 Chest")
+                    if not chest.Root:FindFirstChild("BFS_ESP") then
+                        CreateESP(chest.Root, Color3.fromRGB(0, 255, 0), "📦 Chest")
+                    end
                 end
             end
         end)
@@ -1646,9 +1802,12 @@ end
 -- Tomar quest
 local function TakeQuest()
     local Remote = GetBloxFruitsRemote()
-    if not Remote then return false end
+    if not Remote then 
+        warn("⚠️ No se pudo obtener remote para quest")
+        return false 
+    end
     
-    local playerLevel = Player.Data.Level.Value
+    local playerLevel = GetPlayerLevel()
     local selectedQuest = nil
     
     -- Obtener lista de quests del sea actual
@@ -1662,20 +1821,31 @@ local function TakeQuest()
         end
     end
     
-    if not selectedQuest then return false end
+    if not selectedQuest then 
+        warn("⚠️ No se encontró quest apropiada para nivel", playerLevel)
+        return false 
+    end
     
     QuestData.CurrentQuest = selectedQuest.QuestGiver
     QuestData.QuestMob = selectedQuest.Enemy
     QuestData.QuestLevel = selectedQuest.Level
     
     -- Teleport a NPC de quest
-    HumanoidRootPart.CFrame = selectedQuest.Location
+    pcall(function()
+        HumanoidRootPart.CFrame = selectedQuest.Location
+    end)
     wait(0.5)
     
     -- Tomar quest via remote
     local success = pcall(function()
         Remote:InvokeServer("StartQuest", selectedQuest.QuestGiver, 1)
     end)
+    
+    if success then
+        print("✅ Quest tomada:", selectedQuest.Enemy, "- Nivel", selectedQuest.Level)
+    else
+        warn("⚠️ Error al tomar quest")
+    end
     
     return success
 end
@@ -1809,7 +1979,8 @@ local function StartAutoStats()
         
         pcall(function()
             local Remote = GetBloxFruitsRemote()
-            if Remote and Player.Data.Points.Value > 0 then
+            local points = GetPlayerPoints()
+            if Remote and points > 0 then
                 Remote:InvokeServer("AddPoint", Settings.SelectedStat, 1)
             end
         end)
@@ -2051,16 +2222,22 @@ for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
 end
 
 if #currentSeaTeleports > 0 then
-    CreateDropdown(ScrollFrame, "Location:", currentSeaTeleports, function(selected)
+    CreateDropdown(ScrollFrame, "Select Island:", currentSeaTeleports, function(selected)
         Settings.SelectedTeleport = selected
-        
-        -- Buscar la ubicación y teleportarse
-        for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
-            if loc.Name == selected then
-                TeleportToLocation(loc.Location)
-                ShowNotification("📍 Teleport", "Viajando a " .. selected, 3)
-                break
+    end)
+    
+    CreateButton(ScrollFrame, "🚀 Teleport to Island", function()
+        if Settings.SelectedTeleport then
+            -- Buscar la ubicación y teleportarse
+            for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
+                if loc.Name == Settings.SelectedTeleport then
+                    TeleportToLocation(loc.Location)
+                    ShowNotification("📍 Teleport", "Viajando a " .. Settings.SelectedTeleport, 3)
+                    break
+                end
             end
+        else
+            ShowNotification("⚠️ Error", "Selecciona una isla primero", 2)
         end
     end)
 end
@@ -2122,7 +2299,7 @@ print("========================================")
 print("🎮 BFS Hub v4.2 - ULTIMATE EDITION")
 print("========================================")
 print("🌊 Sea: " .. (Settings.CurrentSea == 1 and "Old World (1)" or Settings.CurrentSea == 2 and "New World (2)" or "Third Sea (3)"))
-print("📊 Nivel: " .. Player.Data.Level.Value .. " / 2800")
+print("📊 Nivel: " .. GetPlayerLevel() .. " / 2800")
 print("⚔️ Quest: " .. (QuestData.QuestMob or "Ninguna"))
 print("========================================")
 print("✅ CARACTERÍSTICAS COMPLETAS:")
