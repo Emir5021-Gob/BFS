@@ -69,6 +69,7 @@ local Settings = {
     EnableESP = false,
     SelectedStat = "Melee",
     SelectedWeapon = "Combat",
+    SelectedWeaponType = "Melee", -- Tipo: Melee, Sword, Gun, Fruit
     SelectedBoss = "",
     SelectedRaid = "Flame",
     SelectedMaterial = "Leather",
@@ -817,13 +818,75 @@ local function GetCurrentWeapon()
     return nil
 end
 
--- Equipar arma
+-- Equipar arma específica por nombre
 local function EquipWeapon(weaponName)
     local tool = Player.Backpack:FindFirstChild(weaponName)
     if tool and tool:IsA("Tool") then
         Humanoid:EquipTool(tool)
         return true
     end
+    return false
+end
+
+-- Obtener tipo de arma (Melee, Sword, Gun, Fruit)
+local function GetWeaponType(tool)
+    if not tool then return "Melee" end
+    
+    local toolName = tool.Name:lower()
+    
+    -- Detectar Fruit
+    if toolName:find("fruit") or tool:FindFirstChild("RemoteFunctionShoot") then
+        return "Fruit"
+    end
+    
+    -- Detectar Gun/Pistola
+    if toolName:find("gun") or toolName:find("rifle") or toolName:find("bazooka") or 
+       toolName:find("cannon") or toolName:find("flintlock") or toolName:find("musket") then
+        return "Gun"
+    end
+    
+    -- Detectar Sword
+    if toolName:find("sword") or toolName:find("katana") or toolName:find("blade") or 
+       toolName:find("cutlass") or toolName:find("saber") or toolName:find("bisento") or
+       toolName:find("pole") or toolName:find("trident") then
+        return "Sword"
+    end
+    
+    -- Por defecto es Melee
+    return "Melee"
+end
+
+-- Equipar arma según tipo seleccionado (Melee, Sword, Gun, Fruit)
+local function EquipWeaponByType(weaponType)
+    -- Si ya tiene un arma del tipo correcto, no hacer nada
+    local currentWeapon = GetCurrentWeapon()
+    if currentWeapon and GetWeaponType(currentWeapon) == weaponType then
+        return true
+    end
+    
+    -- Buscar y equipar arma del tipo solicitado
+    for _, tool in pairs(Player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            local toolType = GetWeaponType(tool)
+            if toolType == weaponType then
+                Humanoid:EquipTool(tool)
+                return true
+            end
+        end
+    end
+    
+    -- Si es Melee y no hay arma, usar Combat (puños)
+    if weaponType == "Melee" then
+        -- Desequipar cualquier arma para usar Combat
+        local equipped = GetCurrentWeapon()
+        if equipped then
+            pcall(function()
+                Humanoid:UnequipTools()
+            end)
+        end
+        return true
+    end
+    
     return false
 end
 
@@ -1055,15 +1118,8 @@ local function StartAutoBoss()
                 
                 local distance = (HumanoidRootPart.Position - boss.HumanoidRootPart.Position).Magnitude
                 
-                -- Equipar arma
-                if not GetCurrentWeapon() then
-                    for _, tool in pairs(Player.Backpack:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            Humanoid:EquipTool(tool)
-                            break
-                        end
-                    end
-                end
+                -- Equipar arma del tipo seleccionado
+                EquipWeaponByType(Settings.SelectedWeaponType)
                 
                 if distance > Settings.AttackDistance + 2 then
                     -- Volar hacia boss
@@ -1422,14 +1478,8 @@ local function StartAutoMaterial()
             if mob and mob:FindFirstChild("HumanoidRootPart") then
                 local distance = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
                 
-                if not GetCurrentWeapon() then
-                    for _, tool in pairs(Player.Backpack:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            Humanoid:EquipTool(tool)
-                            break
-                        end
-                    end
-                end
+                -- Equipar arma del tipo seleccionado
+                EquipWeaponByType(Settings.SelectedWeaponType)
                 
                 if distance > Settings.AttackDistance + 2 then
                     local direction = (mob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
@@ -1485,14 +1535,8 @@ local function StartAutoBones()
             end
             
             if boneMob then
-                if not GetCurrentWeapon() then
-                    for _, tool in pairs(Player.Backpack:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            Humanoid:EquipTool(tool)
-                            break
-                        end
-                    end
-                end
+                -- Equipar arma del tipo seleccionado
+                EquipWeaponByType(Settings.SelectedWeaponType)
                 
                 local distance = (HumanoidRootPart.Position - boneMob.HumanoidRootPart.Position).Magnitude
                 
@@ -1550,14 +1594,8 @@ local function StartAutoEctoplasm()
             end
             
             if ectoMob then
-                if not GetCurrentWeapon() then
-                    for _, tool in pairs(Player.Backpack:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            Humanoid:EquipTool(tool)
-                            break
-                        end
-                    end
-                end
+                -- Equipar arma del tipo seleccionado
+                EquipWeaponByType(Settings.SelectedWeaponType)
                 
                 local distance = (HumanoidRootPart.Position - ectoMob.HumanoidRootPart.Position).Magnitude
                 
@@ -2004,19 +2042,11 @@ local function StartAutoFarm()
                 
                 local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                 
-                -- Equipar arma si no hay ninguna
-                if not GetCurrentWeapon() then
-                    for _, tool in pairs(Player.Backpack:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            Humanoid:EquipTool(tool)
-                            break
-                        end
-                    end
-                end
+                -- Equipar arma del tipo seleccionado
+                EquipWeaponByType(Settings.SelectedWeaponType)
                 
                 -- Mover hacia el enemigo
                 if distance > Settings.AttackDistance + 2 then
-                    -- BodyVelocity para vuelo
                     local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                     HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
@@ -2028,10 +2058,16 @@ local function StartAutoFarm()
                         BringMobToPlayer(enemy)
                     end
                     
-                    -- Atacar
+                    -- Atacar con el arma equipada
                     local weapon = GetCurrentWeapon()
                     if weapon then
                         weapon:Activate()
+                    end
+                    
+                    -- Si es Melee (sin arma), click para atacar
+                    if not weapon and Settings.SelectedWeaponType == "Melee" then
+                        game:GetService("VirtualUser"):CaptureController()
+                        game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
                     end
                 end
             end
@@ -2145,6 +2181,10 @@ local function ShowFarmingCategory()
         end
     end)
     
+    CreateDropdown(ContentArea, "Weapon Type:", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
+        Settings.SelectedWeaponType = selected
+    end)
+    
     CreateToggle(ContentArea, "Auto Quest", function(value)
         Settings.AutoQuest = value
         if value then
@@ -2156,6 +2196,17 @@ local function ShowFarmingCategory()
     end)
     
     CreateToggle(ContentArea, "Fast Attack", function(value)
+        Settings.FastAttack = value
+        if value then
+            StartFastAttack()
+        else
+            StopFastAttack()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Bring Mob", function(value)
+        Settings.BringMob = value
+    end)
         Settings.FastAttack = value
         if value then
             StartFastAttack()
