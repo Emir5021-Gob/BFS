@@ -337,6 +337,22 @@ local function GetNearestEnemy()
     return nearestEnemy, shortestDistance
 end
 
+local function BringMobToPlayer(enemy)
+    pcall(function()
+        if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
+            if enemy.Humanoid.Health > 0 then
+                -- Traer el mob hacia el jugador (más seguro que teleportar)
+                enemy.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                enemy.HumanoidRootPart.Transparency = 1
+                enemy.HumanoidRootPart.CanCollide = false
+                enemy.Humanoid.WalkSpeed = 0
+                enemy.Humanoid.JumpPower = 0
+                enemy.HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 0, -10)
+            end
+        end
+    end)
+end
+
 local function FarmEnemy(enemy, distance)
     if not enemy or not enemy:FindFirstChild("Humanoid") or enemy.Humanoid.Health <= 0 then
         BFS.CurrentEnemy = nil
@@ -355,39 +371,67 @@ local function FarmEnemy(enemy, distance)
         end
     end
     
-    -- Verificar cooldown de teleport
-    local currentTime = tick()
-    if currentTime - BFS.LastTeleport < BFS.TeleportCooldown then
-        wait(0.1)
-        return true
+    -- Verificar si hay tool equipada
+    local tool = Player.Character:FindFirstChildOfClass("Tool")
+    if not tool then
+        -- Intentar equipar una tool del backpack
+        local backpackTool = Player.Backpack:FindFirstChildOfClass("Tool")
+        if backpackTool then
+            Humanoid:EquipTool(backpackTool)
+            wait(0.2)
+            tool = Player.Character:FindFirstChildOfClass("Tool")
+        end
     end
     
-    -- Solo teleportar si está muy lejos
-    if distance > 50 then
-        local targetPos = enemy.HumanoidRootPart.Position + Vector3.new(0, 15, 0)
-        
-        -- Teleport más seguro con pequeño delay
+    if not tool then
+        UpdateStatus("⚠️ Sin arma!")
+        return false
+    end
+    
+    -- Si está lejos, acercarse volando
+    if distance > 30 then
         pcall(function()
-            HumanoidRootPart.CFrame = CFrame.new(targetPos)
+            -- Crear BodyVelocity para volar hacia el enemigo
+            local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+            if not bodyVel then
+                bodyVel = Instance.new("BodyVelocity")
+                bodyVel.Name = "BFS_BodyVel"
+                bodyVel.MaxForce = Vector3.new(100000, 100000, 100000)
+                bodyVel.Parent = HumanoidRootPart
+            end
+            
+            local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+            bodyVel.Velocity = direction * 150  -- Velocidad de vuelo
+            
+            -- Hacer que mire hacia el enemigo
+            HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, enemy.HumanoidRootPart.Position)
+        end)
+    else
+        -- Si está cerca, quitar BodyVelocity
+        pcall(function()
+            local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+            if bodyVel then
+                bodyVel:Destroy()
+            end
         end)
         
-        BFS.LastTeleport = currentTime
-        wait(0.3)
+        -- Traer el mob al jugador
+        BringMobToPlayer(enemy)
     end
     
-    -- Atacar al enemigo
+    -- Atacar constantemente
     pcall(function()
-        local tool = Player.Character:FindFirstChildOfClass("Tool")
         if tool then
-            -- Activar tool múltiples veces para asegurar hit
-            for i = 1, 3 do
-                tool:Activate()
-                wait(0.05)
-            end
+            -- Hacer que mire al enemigo
+            HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, enemy.HumanoidRootPart.Position)
+            
+            -- Activar tool
+            tool:Activate()
+            
+            -- También hacer click para asegurar el ataque
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
         end
-        
-        -- Hacer que el personaje mire al enemigo
-        HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, enemy.HumanoidRootPart.Position)
     end)
     
     BFS.CurrentEnemy = enemy
@@ -483,23 +527,55 @@ local function StartAutoFarm()
                 end
                 UpdateStatus("Farm: " .. enemyName)
                 
-                local success = pcall(function()
-                    FarmEnemy(enemy, distance)
+                -- Farmear mientras el enemigo esté vivo
+                while enemy and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and BFS.Farming do
+                    local success = pcall(function()
+                        local currentDistance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                        FarmEnemy(enemy, currentDistance)
+                    end)
+                    
+                    if not success then
+                        BFS.CurrentEnemy = nil
+                        break
+                    end
+                    
+                    wait(0.2)  -- Fast loop para ataque continuo
+                end
+                
+                -- Limpiar BodyVelocity después de matar al enemigo
+                pcall(function()
+                    local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+                    if bodyVel then
+                        bodyVel:Destroy()
+                    end
                 end)
                 
-                if not success then
-                    BFS.CurrentEnemy = nil
-                    wait(1)
-                end
+                BFS.CurrentEnemy = nil
             else
                 UpdateStatus("Sin enemigos")
                 BFS.CurrentEnemy = nil
+                
+                -- Limpiar BodyVelocity si no hay enemigos
+                pcall(function()
+                    local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+                    if bodyVel then
+                        bodyVel:Destroy()
+                    end
+                end)
+                
                 wait(2)
             end
             
-            -- Delay más largo para evitar detección
             wait(0.5)
         end
+        
+        -- Limpiar al detener
+        pcall(function()
+            local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+            if bodyVel then
+                bodyVel:Destroy()
+            end
+        end)
     end)
 end
 
@@ -508,6 +584,16 @@ local function StopAutoFarm()
     UpdateStatus("Farm OFF")
     FarmButton.Text = "🎯 Auto Farm: OFF"
     FarmButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+    
+    -- Limpiar BodyVelocity al detener
+    pcall(function()
+        if HumanoidRootPart then
+            local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+            if bodyVel then
+                bodyVel:Destroy()
+            end
+        end
+    end)
 end
 
 local function ToggleAutoQuest()
@@ -589,6 +675,17 @@ end
 
 CloseButton.MouseButton1Click:Connect(function()
     BFS.Running = false
+    
+    -- Limpiar BodyVelocity antes de cerrar
+    pcall(function()
+        if HumanoidRootPart then
+            local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+            if bodyVel then
+                bodyVel:Destroy()
+            end
+        end
+    end)
+    
     ScreenGui:Destroy()
 end)
 
