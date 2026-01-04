@@ -9,7 +9,7 @@
 print("🚀 BFS Scripts v2.0 - Iniciando...")
 
 -- Configuración del repositorio
-local REPO_URL = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/refs/heads/main/Scripts-main/"
+local REPO_URL = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/refs/heads/main/"
 
 -- Tabla de juegos soportados
 local SUPPORTED_GAMES = {
