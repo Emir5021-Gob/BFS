@@ -543,7 +543,8 @@ local function CreateUI()
         end
     end)
     
-    ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+    -- NO insertar aquí, se insertará después
+    -- ScreenGui.Parent = Player:WaitForChild("PlayerGui")
     return ScreenGui, SidebarScroll, ContentScroll
 end
 
@@ -2895,10 +2896,19 @@ print("")
 print("⚠️ TODAS LAS OPCIONES DESACTIVADAS")
 print("   Activa solo las que necesites usar")
 print("========================================")
+print("🔧 Iniciando creación de UI...")
 
 -- Crear la UI
 local success, err = pcall(function()
+    print("📦 Llamando a CreateUI()...")
     local ScreenGui, SidebarScroll, ContentScroll = CreateUI()
+    
+    if not ScreenGui then
+        error("CreateUI() no retornó ScreenGui")
+    end
+    
+    print("✅ CreateUI() exitoso")
+    print("📱 Creando botones de categorías...")
     
     -- Crear botones de categorías en el sidebar
     CreateCategoryButton(SidebarScroll, "🌾", "Farming", ShowFarmingCategory)
@@ -2911,14 +2921,28 @@ local success, err = pcall(function()
     CreateCategoryButton(SidebarScroll, "👁️", "ESP", ShowESPCategory)
     CreateCategoryButton(SidebarScroll, "⚙️", "Settings", ShowSettingsCategory)
     
+    print("✅ Botones creados")
+    print("📄 Mostrando categoría inicial...")
+    
     -- Mostrar categoría inicial
     ShowFarmingCategory()
     
-    print("✅ UI creada exitosamente!")
+    print("✅ UI completamente cargada!")
+    
+    -- Insertar en CoreGui o PlayerGui
+    local targetParent = game:GetService("CoreGui")
+    if not targetParent then
+        targetParent = Player:WaitForChild("PlayerGui")
+    end
+    
+    ScreenGui.Parent = targetParent
+    print("✅ UI insertada en:", targetParent.Name)
 end)
 
 if not success then
-    warn("❌ Error al crear UI:", err)
+    warn("❌ Error al crear UI:", tostring(err))
+    warn("❌ Stack trace completo:")
+    warn(debug.traceback())
 end
 
 print("🎮 BFS Scripts cargado completamente!")
