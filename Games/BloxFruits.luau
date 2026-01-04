@@ -1,5 +1,6 @@
--- BFS Premium Hub v4.0
+-- BFS Premium Hub v4.2 - ULTIMATE EDITION
 -- Optimizado para móvil con funcionalidades completas
+-- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -44,15 +45,28 @@ local Settings = {
     AutoFruitMastery = false,
     UseFruitSkills = false,
     SafeMode = false,
+    AutoBones = false,
+    AutoEctoplasm = false,
+    AutoMaterial = false,
+    AutoFruitCollect = false,
+    FruitNotifier = false,
+    AutoObservationHaki = false,
+    AutoArmamentHaki = false,
+    EnableESP = false,
     SelectedStat = "Melee",
     SelectedWeapon = "Combat",
     SelectedBoss = "",
     SelectedRaid = "Flame",
+    SelectedMaterial = "Leather",
+    SelectedTeleport = "SafeZone",
     AttackDistance = 3,
     FarmDistance = 350,
     TweenSpeed = 300,
     CurrentSea = CurrentSea
 }
+
+-- Notificaciones
+local Notifications = {}
 
 local QuestData = {
     CurrentQuest = nil,
@@ -221,6 +235,87 @@ local SpecialIslands = {
     SeaBeast = "SeaBeast"
 }
 
+-- Lista de materiales farmables
+local MaterialList = {
+    "Leather", "Scrap Metal", "Angel Wings", "Magma Ore",
+    "Fish Tail", "Mystic Droplet", "Vampire Fang", "Demonic Wisp",
+    "Conjured Cocoa", "Dragon Scale", "Gunpowder", "Mini Tusk"
+}
+
+-- Mobs que dropean materiales
+local MaterialMobs = {
+    ["Leather"] = {"Pirate", "Brute", "Desert Bandit"},
+    ["Scrap Metal"] = {"Brute", "Military Soldier"},
+    ["Angel Wings"] = {"Royal Soldier", "Royal Squad"},
+    ["Magma Ore"] = {"Magma Ninja", "Lava Pirate"},
+    ["Fish Tail"] = {"Fishman Warrior", "Fishman Commando"},
+    ["Mystic Droplet"] = {"Sea Soldier", "Water Fighter"},
+    ["Vampire Fang"] = {"Vampire"},
+    ["Demonic Wisp"] = {"Demonic Soul"},
+    ["Conjured Cocoa"] = {"Chocolate Bar Battler", "Cocoa Warrior"},
+    ["Dragon Scale"] = {"Dragon Crew Warrior", "Dragon Crew Archer"},
+    ["Gunpowder"] = {"Military Soldier", "Military Spy"},
+    ["Mini Tusk"] = {"Mythological Pirate"}
+}
+
+-- Mobs que dropean Bones (Sea 3)
+local BoneMobs = {
+    "Reborn Skeleton", "Living Zombie", "Demonic Soul", "Posessed Mummy"
+}
+
+-- Mobs que dropean Ectoplasm
+local EctoplasmMobs = {
+    "Ship Deckhand", "Ship Engineer", "Ship Steward", "Ship Officer"
+}
+
+-- Lista de frutas conocidas
+local FruitList = {
+    "Kilo", "Spin", "Spring", "Bomb", "Smoke", "Spike", "Flame", "Falcon",
+    "Ice", "Sand", "Dark", "Diamond", "Light", "Rubber", "Barrier",
+    "Ghost", "Magma", "Quake", "Buddha", "Love", "Spider", "Sound",
+    "Phoenix", "Portal", "Rumble", "Pain", "Blizzard", "Gravity", "Mammoth",
+    "T-Rex", "Dough", "Shadow", "Venom", "Control", "Spirit", "Dragon",
+    "Leopard", "Kitsune"
+}
+
+-- Teleports por Sea
+local TeleportLocations = {
+    [1] = { -- Sea 1
+        {Name = "SafeZone", Location = CFrame.new(-2, 15, 1537)},
+        {Name = "Jungle", Location = CFrame.new(-1602, 37, 150)},
+        {Name = "Pirate Village", Location = CFrame.new(-1173, 4, 3808)},
+        {Name = "Desert", Location = CFrame.new(945, 7, 4484)},
+        {Name = "Frozen Village", Location = CFrame.new(1096, 87, -1298)},
+        {Name = "Prison", Location = CFrame.new(4854, 5, 734)},
+        {Name = "Colosseum", Location = CFrame.new(-1427, 7, -2932)},
+        {Name = "Magma Village", Location = CFrame.new(-5247, 12, -4970)},
+        {Name = "Underwater City", Location = CFrame.new(61123, 11, 1819)},
+        {Name = "Upper Skylands", Location = CFrame.new(-7895, 5547, -379)},
+        {Name = "Fountain City", Location = CFrame.new(5127, 37, 4050)},
+    },
+    [2] = { -- Sea 2
+        {Name = "Kingdom of Rose", Location = CFrame.new(-246, 38, 1581)},
+        {Name = "Cafe", Location = CFrame.new(-383, 73, 298)},
+        {Name = "Mansion", Location = CFrame.new(-12471, 374, -7551)},
+        {Name = "Graveyard", Location = CFrame.new(-5539, 29, -831)},
+        {Name = "Snow Mountain", Location = CFrame.new(749, 408, -5274)},
+        {Name = "Hot & Cold", Location = CFrame.new(-6508, 15, -6001)},
+        {Name = "Cursed Ship", Location = CFrame.new(923, 125, 32853)},
+        {Name = "Ice Castle", Location = CFrame.new(6430, 5, -6166)},
+        {Name = "Forgotten Island", Location = CFrame.new(-3053, 240, -10148)},
+    },
+    [3] = { -- Sea 3
+        {Name = "Port Town", Location = CFrame.new(-290, 7, 5343)},
+        {Name = "Great Tree", Location = CFrame.new(2681, 1682, -7190)},
+        {Name = "Castle on the Sea", Location = CFrame.new(-5075, 314, -2998)},
+        {Name = "Hydra Island", Location = CFrame.new(5753, 610, -282)},
+        {Name = "Haunted Castle", Location = CFrame.new(-9515, 142, 5567)},
+        {Name = "Sea of Treats", Location = CFrame.new(-2020, 37, -12026)},
+        {Name = "Tiki Outpost", Location = CFrame.new(-16545, 55, 1051)},
+        {Name = "Floating Turtle", Location = CFrame.new(-13274, 332, -7632)},
+    }
+}
+
 -- Sistema de remotes de Blox Fruits
 local function GetBloxFruitsRemote()
     local success, result = pcall(function()
@@ -282,7 +377,7 @@ local function CreateUI()
     Title.Position = UDim2.new(0, 10, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Font = Enum.Font.GothamBold
-    Title.Text = "BFS Hub v4.0"
+    Title.Text = "BFS Hub v4.2"
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.TextSize = 16
     Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -1018,6 +1113,478 @@ local function StopAutoFruitMastery()
     end
 end
 
+-- Sistema de Notificaciones
+local function ShowNotification(title, text, duration)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = duration or 5,
+        })
+    end)
+    
+    table.insert(Notifications, {Title = title, Text = text, Time = tick()})
+end
+
+-- 1. AUTO FARM MATERIALS/BONES
+
+-- Buscar mob que dropea el material seleccionado
+local function FindMaterialMob()
+    local targetMobs = MaterialMobs[Settings.SelectedMaterial]
+    if not targetMobs then return nil end
+    
+    for _, mobName in pairs(targetMobs) do
+        for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+            if mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                return mob
+            end
+        end
+    end
+    return nil
+end
+
+-- Auto Farm Materials
+local MaterialConnection
+local function StartAutoMaterial()
+    if MaterialConnection then return end
+    
+    MaterialConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoMaterial then return end
+        
+        pcall(function()
+            local mob = FindMaterialMob()
+            
+            if mob and mob:FindFirstChild("HumanoidRootPart") then
+                local distance = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                
+                if not GetCurrentWeapon() then
+                    for _, tool in pairs(Player.Backpack:GetChildren()) do
+                        if tool:IsA("Tool") then
+                            Humanoid:EquipTool(tool)
+                            break
+                        end
+                    end
+                end
+                
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (mob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                else
+                    HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    
+                    if Settings.BringMob then
+                        BringMobToPlayer(mob)
+                    end
+                    
+                    local weapon = GetCurrentWeapon()
+                    if weapon then
+                        weapon:Activate()
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoMaterial()
+    if MaterialConnection then
+        MaterialConnection:Disconnect()
+        MaterialConnection = nil
+    end
+end
+
+-- Auto Farm Bones
+local BonesConnection
+local function StartAutoBones()
+    if BonesConnection then return end
+    
+    BonesConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoBones then return end
+        
+        pcall(function()
+            local boneMob = nil
+            local shortestDist = Settings.FarmDistance
+            
+            for _, mobName in pairs(BoneMobs) do
+                for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                        local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            boneMob = mob
+                        end
+                    end
+                end
+            end
+            
+            if boneMob then
+                if not GetCurrentWeapon() then
+                    for _, tool in pairs(Player.Backpack:GetChildren()) do
+                        if tool:IsA("Tool") then
+                            Humanoid:EquipTool(tool)
+                            break
+                        end
+                    end
+                end
+                
+                local distance = (HumanoidRootPart.Position - boneMob.HumanoidRootPart.Position).Magnitude
+                
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (boneMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                else
+                    HumanoidRootPart.CFrame = boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    
+                    if Settings.BringMob then
+                        BringMobToPlayer(boneMob)
+                    end
+                    
+                    local weapon = GetCurrentWeapon()
+                    if weapon then
+                        weapon:Activate()
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoBones()
+    if BonesConnection then
+        BonesConnection:Disconnect()
+        BonesConnection = nil
+    end
+end
+
+-- Auto Farm Ectoplasm
+local EctoplasmConnection
+local function StartAutoEctoplasm()
+    if EctoplasmConnection then return end
+    
+    EctoplasmConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoEctoplasm then return end
+        
+        pcall(function()
+            local ectoMob = nil
+            local shortestDist = Settings.FarmDistance
+            
+            for _, mobName in pairs(EctoplasmMobs) do
+                for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if mob.Name == mobName and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                        local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            ectoMob = mob
+                        end
+                    end
+                end
+            end
+            
+            if ectoMob then
+                if not GetCurrentWeapon() then
+                    for _, tool in pairs(Player.Backpack:GetChildren()) do
+                        if tool:IsA("Tool") then
+                            Humanoid:EquipTool(tool)
+                            break
+                        end
+                    end
+                end
+                
+                local distance = (HumanoidRootPart.Position - ectoMob.HumanoidRootPart.Position).Magnitude
+                
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (ectoMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                else
+                    HumanoidRootPart.CFrame = ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    
+                    if Settings.BringMob then
+                        BringMobToPlayer(ectoMob)
+                    end
+                    
+                    local weapon = GetCurrentWeapon()
+                    if weapon then
+                        weapon:Activate()
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoEctoplasm()
+    if EctoplasmConnection then
+        EctoplasmConnection:Disconnect()
+        EctoplasmConnection = nil
+    end
+end
+
+-- 2. AUTO FARM FRUITS
+
+-- Buscar frutas en el mapa
+local function FindFruit()
+    for _, v in pairs(game.Workspace:GetChildren()) do
+        if string.find(v.Name, "Fruit") and v:IsA("Tool") then
+            return v
+        end
+    end
+    
+    for _, v in pairs(game.Workspace:GetDescendants()) do
+        if v:IsA("Tool") and string.find(v.Name, "Fruit") then
+            return v
+        end
+    end
+    
+    return nil
+end
+
+-- Auto Farm Fruits
+local FruitCollectConnection
+local function StartAutoFruitCollect()
+    if FruitCollectConnection then return end
+    
+    FruitCollectConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoFruitCollect then return end
+        
+        pcall(function()
+            local fruit = FindFruit()
+            
+            if fruit and fruit:FindFirstChild("Handle") then
+                local distance = (HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
+                
+                if distance > 5 then
+                    local direction = (fruit.Handle.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
+                else
+                    -- Intentar recoger la fruta
+                    HumanoidRootPart.CFrame = fruit.Handle.CFrame
+                    wait(0.3)
+                    
+                    -- Store en inventario si es posible
+                    local Remote = GetBloxFruitsRemote()
+                    if Remote then
+                        pcall(function()
+                            Remote:InvokeServer("StoreFruit", fruit.Name)
+                        end)
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoFruitCollect()
+    if FruitCollectConnection then
+        FruitCollectConnection:Disconnect()
+        FruitCollectConnection = nil
+    end
+end
+
+-- Fruit Notifier
+local FruitNotifierConnection
+local LastNotifiedFruits = {}
+
+local function StartFruitNotifier()
+    if FruitNotifierConnection then return end
+    
+    FruitNotifierConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.FruitNotifier then return end
+        
+        pcall(function()
+            for _, v in pairs(game.Workspace:GetDescendants()) do
+                if v:IsA("Tool") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                    if not LastNotifiedFruits[v] then
+                        ShowNotification("🍎 FRUTA ENCONTRADA!", v.Name, 10)
+                        LastNotifiedFruits[v] = true
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopFruitNotifier()
+    if FruitNotifierConnection then
+        FruitNotifierConnection:Disconnect()
+        FruitNotifierConnection = nil
+    end
+end
+
+-- 3. TELEPORTS
+
+local function TeleportToLocation(cframe)
+    pcall(function()
+        -- Teleport con tween para ser más seguro
+        local distance = (HumanoidRootPart.Position - cframe.Position).Magnitude
+        
+        if distance < 100 then
+            HumanoidRootPart.CFrame = cframe
+        else
+            local tweenInfo = TweenInfo.new(distance / Settings.TweenSpeed, Enum.EasingStyle.Linear)
+            local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = cframe})
+            tween:Play()
+            tween.Completed:Wait()
+        end
+    end)
+end
+
+-- 4. AUTO HAKI TRAINING
+
+-- Auto Observation Haki
+local ObservationConnection
+local function StartAutoObservationHaki()
+    if ObservationConnection then return end
+    
+    ObservationConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoObservationHaki then return end
+        
+        pcall(function()
+            local Remote = GetBloxFruitsRemote()
+            if Remote then
+                -- Activar Observation Haki
+                Remote:InvokeServer("KenTalk", "Buy")
+                Remote:InvokeServer("KenTalk", "Start")
+                
+                -- Esquivar ataques automáticamente
+                if Player.Character:FindFirstChild("Humanoid") then
+                    local enemy = GetNearestEnemy()
+                    if enemy and (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude < 50 then
+                        -- Activar dodge
+                        game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
+                        wait(0.1)
+                        game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoObservationHaki()
+    if ObservationConnection then
+        ObservationConnection:Disconnect()
+        ObservationConnection = nil
+    end
+end
+
+-- Auto Armament Haki
+local ArmamentConnection
+local function StartAutoArmamentHaki()
+    if ArmamentConnection then return end
+    
+    ArmamentConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoArmamentHaki then return end
+        
+        pcall(function()
+            local Remote = GetBloxFruitsRemote()
+            if Remote then
+                -- Comprar y activar Armament Haki
+                Remote:InvokeServer("BuyHaki", "Buso")
+                
+                -- Mantener Buso activo
+                if not Player.Character:FindFirstChild("HasBuso") then
+                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "J", false, game)
+                    wait(0.1)
+                    game:GetService("VirtualInputManager"):SendKeyEvent(false, "J", false, game)
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoArmamentHaki()
+    if ArmamentConnection then
+        ArmamentConnection:Disconnect()
+        ArmamentConnection = nil
+    end
+end
+
+-- 5. ESP/NOTIFICACIONES
+
+-- ESP para enemigos
+local ESPConnections = {}
+
+local function CreateESP(object, color, text)
+    if object:FindFirstChild("BFS_ESP") then return end
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "BFS_ESP"
+    billboardGui.Adornee = object
+    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.AlwaysOnTop = true
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text or object.Name
+    textLabel.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+    textLabel.TextSize = 14
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextStrokeTransparency = 0.5
+    textLabel.Parent = billboardGui
+    
+    billboardGui.Parent = object
+end
+
+local function EnableESP()
+    -- ESP para enemigos
+    local enemyESP = RunService.Heartbeat:Connect(function()
+        if not Settings.EnableESP then return end
+        
+        pcall(function()
+            for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                    CreateESP(enemy.HumanoidRootPart, Color3.fromRGB(255, 0, 0), enemy.Name)
+                end
+            end
+        end)
+    end)
+    table.insert(ESPConnections, enemyESP)
+    
+    -- ESP para frutas
+    local fruitESP = RunService.Heartbeat:Connect(function()
+        if not Settings.EnableESP then return end
+        
+        pcall(function()
+            for _, v in pairs(game.Workspace:GetDescendants()) do
+                if v:IsA("Tool") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                    CreateESP(v.Handle, Color3.fromRGB(255, 215, 0), "🍎 " .. v.Name)
+                end
+            end
+        end)
+    end)
+    table.insert(ESPConnections, fruitESP)
+    
+    -- ESP para cofres
+    local chestESP = RunService.Heartbeat:Connect(function()
+        if not Settings.EnableESP then return end
+        
+        pcall(function()
+            for _, chest in pairs(game.Workspace:GetChildren()) do
+                if chest.Name:find("Chest") and chest:FindFirstChild("Root") then
+                    CreateESP(chest.Root, Color3.fromRGB(0, 255, 0), "📦 Chest")
+                end
+            end
+        end)
+    end)
+    table.insert(ESPConnections, chestESP)
+end
+
+local function DisableESP()
+    for _, connection in pairs(ESPConnections) do
+        connection:Disconnect()
+    end
+    ESPConnections = {}
+    
+    -- Remover todos los ESP
+    for _, v in pairs(game.Workspace:GetDescendants()) do
+        if v:IsA("BillboardGui") and v.Name == "BFS_ESP" then
+            v:Destroy()
+        end
+    end
+end
+
 -- Obtener enemigo más cercano
 local function GetNearestEnemy()
     local nearestEnemy = nil
@@ -1320,6 +1887,59 @@ CreateToggle(ScrollFrame, "Auto Chest", function(value)
     end
 end)
 
+CreateSection(ScrollFrame, "💎 MATERIALS & BONES")
+
+CreateToggle(ScrollFrame, "Auto Farm Material", function(value)
+    Settings.AutoMaterial = value
+    if value then
+        StartAutoMaterial()
+    else
+        StopAutoMaterial()
+    end
+end)
+
+CreateDropdown(ScrollFrame, "Material:", MaterialList, function(selected)
+    Settings.SelectedMaterial = selected
+end)
+
+CreateToggle(ScrollFrame, "Auto Farm Bones", function(value)
+    Settings.AutoBones = value
+    if value then
+        StartAutoBones()
+    else
+        StopAutoBones()
+    end
+end)
+
+CreateToggle(ScrollFrame, "Auto Farm Ectoplasm", function(value)
+    Settings.AutoEctoplasm = value
+    if value then
+        StartAutoEctoplasm()
+    else
+        StopAutoEctoplasm()
+    end
+end)
+
+CreateSection(ScrollFrame, "🍎 FRUITS")
+
+CreateToggle(ScrollFrame, "Auto Collect Fruits", function(value)
+    Settings.AutoFruitCollect = value
+    if value then
+        StartAutoFruitCollect()
+    else
+        StopAutoFruitCollect()
+    end
+end)
+
+CreateToggle(ScrollFrame, "Fruit Notifier", function(value)
+    Settings.FruitNotifier = value
+    if value then
+        StartFruitNotifier()
+    else
+        StopFruitNotifier()
+    end
+end)
+
 CreateSection(ScrollFrame, "🏝️ SPECIAL ISLANDS")
 
 CreateToggle(ScrollFrame, "Auto Mirage Island", function(value)
@@ -1382,6 +2002,60 @@ CreateToggle(ScrollFrame, "Use Fruit Skills (Z/X/C/V)", function(value)
     Settings.UseFruitSkills = value
 end)
 
+CreateSection(ScrollFrame, "🗺️ TELEPORTS")
+
+-- Crear lista de teleports según el Sea actual
+local currentSeaTeleports = {}
+for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
+    table.insert(currentSeaTeleports, loc.Name)
+end
+
+if #currentSeaTeleports > 0 then
+    CreateDropdown(ScrollFrame, "Location:", currentSeaTeleports, function(selected)
+        Settings.SelectedTeleport = selected
+        
+        -- Buscar la ubicación y teleportarse
+        for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
+            if loc.Name == selected then
+                TeleportToLocation(loc.Location)
+                ShowNotification("📍 Teleport", "Viajando a " .. selected, 3)
+                break
+            end
+        end
+    end)
+end
+
+CreateSection(ScrollFrame, "🥋 HAKI TRAINING")
+
+CreateToggle(ScrollFrame, "Auto Observation Haki", function(value)
+    Settings.AutoObservationHaki = value
+    if value then
+        StartAutoObservationHaki()
+    else
+        StopAutoObservationHaki()
+    end
+end)
+
+CreateToggle(ScrollFrame, "Auto Armament Haki", function(value)
+    Settings.AutoArmamentHaki = value
+    if value then
+        StartAutoArmamentHaki()
+    else
+        StopAutoArmamentHaki()
+    end
+end)
+
+CreateSection(ScrollFrame, "👁️ ESP & VISUALS")
+
+CreateToggle(ScrollFrame, "Enable ESP", function(value)
+    Settings.EnableESP = value
+    if value then
+        EnableESP()
+    else
+        DisableESP()
+    end
+end)
+
 CreateSection(ScrollFrame, "⚙️ SETTINGS")
 
 CreateToggle(ScrollFrame, "Safe Mode (60%)", function(value)
@@ -1405,16 +2079,16 @@ end)
 
 -- Inicialización
 print("========================================")
-print("🎮 BFS Hub v4.1 - EDICIÓN COMPLETA")
+print("🎮 BFS Hub v4.2 - ULTIMATE EDITION")
 print("========================================")
 print("🌊 Sea: " .. (Settings.CurrentSea == 1 and "Old World (1)" or Settings.CurrentSea == 2 and "New World (2)" or "Third Sea (3)"))
 print("📊 Nivel: " .. Player.Data.Level.Value .. " / 2800")
 print("⚔️ Quest: " .. (QuestData.QuestMob or "Ninguna"))
 print("========================================")
-print("✅ CARACTERÍSTICAS DISPONIBLES:")
+print("✅ CARACTERÍSTICAS COMPLETAS:")
 print("")
 print("📦 FARMING:")
-print("  • Auto Farm + Quest (70+ quests)")
+print("  • Auto Farm + Quest (75+ quests)")
 print("  • Fast Attack Optimizado")
 print("  • Bring Mob Seguro")
 print("  • Safe Mode")
@@ -1424,22 +2098,42 @@ print("  • Auto Boss (30+ bosses)")
 print("  • Auto Sea Events")
 print("  • Auto Chest")
 print("")
-print("🏝️ ISLAS ESPECIALES:")
-print("  • Auto Mirage Island")
-print("  • Detección de islas raras")
+print("💎 MATERIALS & BONES:")
+print("  • Auto Farm Materials (12 tipos)")
+print("  • Auto Farm Bones (Sea 3)")
+print("  • Auto Farm Ectoplasm")
 print("")
-print("⚔️ MASTERY & RAIDS:")
+print("🍎 FRUITS:")
+print("  • Auto Collect Fruits")
+print("  • Fruit Notifier (alerta)")
+print("  • Auto Store Fruits")
+print("")
+print("🗺️ NAVIGATION:")
+print("  • Teleports (30+ ubicaciones)")
+print("  • Por Sea específico")
+print("")
+print("🥋 HAKI TRAINING:")
+print("  • Auto Observation Haki")
+print("  • Auto Armament Haki")
+print("  • Auto dodge/active")
+print("")
+print("👁️ ESP & VISUALS:")
+print("  • ESP Enemies (rojo)")
+print("  • ESP Fruits (dorado)")
+print("  • ESP Chests (verde)")
+print("")
+print("🏝️ ISLANDS & RAIDS:")
+print("  • Auto Mirage Island")
 print("  • Auto Raid (14 raids)")
-print("  • Auto Mastery (armas)")
-print("  • Auto Fruit Mastery")
+print("  • Auto Mastery (armas + frutas)")
 print("  • Skills automáticas (Z/X/C/V)")
 print("")
 print("📊 STATS:")
 print("  • Auto Stats (5 opciones)")
-print("  • Anti-AFK")
+print("  • Anti-AFK integrado")
 print("")
-print("⚠️ TODAS LAS OPCIONES APAGADAS")
-print("   Activa solo las que necesites")
+print("⚠️ TODAS LAS OPCIONES DESACTIVADAS")
+print("   Activa solo las que necesites usar")
 print("========================================")
 	print("🌐 Traductor activado")
 end
