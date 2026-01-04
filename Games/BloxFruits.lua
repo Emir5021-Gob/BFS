@@ -30,11 +30,12 @@ local BFS = {
     AutoQuest = false,
     AutoStats = false,
     SafeMode = true,
-    BringMob = true,
+    BringMob = false,  -- Desactivado por defecto para seguridad
     SelectedStat = "Melee",
     CurrentTab = "Main",
-    FarmDistance = 3500,
-    AttackSpeed = 0.1,
+    FarmDistance = 2500,  -- Reducido para ser más seguro
+    AttackSpeed = 0.2,  -- Más lento para evitar detección
+    FlySpeed = 100,
 }
 
 -- Anti-AFK
@@ -361,9 +362,9 @@ end)
 
 CreateSection(tabContents["Main"], "⚙️ CONFIGURACIÓN")
 
-CreateToggle(tabContents["Main"], "🧲 Bring Mob", true, function(state)
+CreateToggle(tabContents["Main"], "🧲 Bring Mob (Riesgoso)", false, function(state)
     BFS.BringMob = state
-    ShowNotification(state and "✅ Bring Mob ON" or "❌ Bring Mob OFF", 2)
+    ShowNotification(state and "⚠️ Bring Mob ON" or "✅ Bring Mob OFF", 2)
 end)
 
 -- TAB COMBAT
@@ -566,12 +567,14 @@ local function BringMobToPlayer(enemy)
     pcall(function()
         if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
             if enemy.Humanoid.Health > 0 then
-                enemy.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
-                enemy.HumanoidRootPart.Transparency = 1
+                -- Método más seguro: solo desactivar movimiento, no modificar tamaño drásticamente
                 enemy.HumanoidRootPart.CanCollide = false
                 enemy.Humanoid.WalkSpeed = 0
-                enemy.Humanoid.JumpPower = 0
-                enemy.HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 0, -10)
+                enemy.HumanoidRootPart.Size = Vector3.new(10, 10, 10)  -- Menos agresivo
+                
+                -- Mover gradualmente, no teleport instantáneo
+                local targetPos = HumanoidRootPart.CFrame * CFrame.new(0, 0, -8)
+                enemy.HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame:Lerp(targetPos, 0.5)
             end
         end
     end)
@@ -608,18 +611,31 @@ function StartAutoFarm()
                 if enemy then
                     while enemy and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and BFS.Farming do
                         pcall(function()
-                            -- Volar hacia enemigo
-                            if distance > 30 then
-                                local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
-                                if not bodyVel then
-                                    bodyVel = Instance.new("BodyVelocity")
-                                    bodyVel.Name = "BFS_BodyVel"
-                                    bodyVel.MaxForce = Vector3.new(100000, 100000, 100000)
-                                    bodyVel.Parent = HumanoidRootPart
+                            -- Volar hacia enemigo con tweening (más seguro)
+                            if distance > 25 then
+                                -- Usar tween en lugar de BodyVelocity para distancias medias
+                                if distance < 100 then
+                                    local targetPos = enemy.HumanoidRootPart.Position + Vector3.new(0, 3, 0)
+                                    local tween = TweenService:Create(
+                                        HumanoidRootPart,
+                                        TweenInfo.new(distance / BFS.FlySpeed, Enum.EasingStyle.Linear),
+                                        {CFrame = CFrame.new(targetPos)}
+                                    )
+                                    tween:Play()
+                                else
+                                    -- Solo usar BodyVelocity para distancias largas
+                                    local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
+                                    if not bodyVel then
+                                        bodyVel = Instance.new("BodyVelocity")
+                                        bodyVel.Name = "BFS_BodyVel"
+                                        bodyVel.MaxForce = Vector3.new(100000, 100000, 100000)
+                                        bodyVel.Parent = HumanoidRootPart
+                                    end
+                                    
+                                    local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                                    bodyVel.Velocity = direction * BFS.FlySpeed
                                 end
                                 
-                                local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                                bodyVel.Velocity = direction * 150
                                 HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, enemy.HumanoidRootPart.Position)
                             else
                                 local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
@@ -627,7 +643,7 @@ function StartAutoFarm()
                                 BringMobToPlayer(enemy)
                             end
                             
-                            -- Atacar
+                            -- Atacar (sin VirtualUser para evitar detección)
                             local tool = Player.Character:FindFirstChildOfClass("Tool")
                             if not tool then
                                 local backpackTool = Player.Backpack:FindFirstChildOfClass("Tool")
@@ -640,24 +656,24 @@ function StartAutoFarm()
                             if tool then
                                 HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, enemy.HumanoidRootPart.Position)
                                 tool:Activate()
-                                game:GetService("VirtualUser"):CaptureController()
-                                game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
                             end
                             
                             distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                         end)
-                        wait(0.2)
+                        wait(0.3)  -- Delay más largo para evitar detección
                     end
                     
                     pcall(function()
                         local bodyVel = HumanoidRootPart:FindFirstChild("BFS_BodyVel")
                         if bodyVel then bodyVel:Destroy() end
                     end)
+                    
+                    wait(0.5)  -- Pausa después de matar enemigo
                 else
                     wait(2)
                 end
             end
-            wait(0.5)
+            wait(1)  -- Delay más largo entre ciclos
         end
     end)
 end
