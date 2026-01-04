@@ -1911,32 +1911,51 @@ local function GetNearestEnemy()
     local nearestEnemy = nil
     local shortestDistance = Settings.FarmDistance
     
-    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                nearestEnemy = v
+    pcall(function()
+        if game.Workspace:FindFirstChild("Enemies") then
+            for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+                if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                    if v.Humanoid.Health > 0 then
+                        local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                        if distance < shortestDistance then
+                            shortestDistance = distance
+                            nearestEnemy = v
+                        end
+                    end
+                end
             end
         end
-    end
+    end)
     
     return nearestEnemy
 end
 
 -- Obtener enemigo específico de quest
 local function GetQuestEnemy(enemyName)
+    if not enemyName then return GetNearestEnemy() end
+    
     local nearestEnemy = nil
     local shortestDistance = Settings.FarmDistance
     
-    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-        if v.Name == enemyName and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                nearestEnemy = v
+    pcall(function()
+        if game.Workspace:FindFirstChild("Enemies") then
+            for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+                if v.Name == enemyName and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                    if v.Humanoid.Health > 0 then
+                        local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                        if distance < shortestDistance then
+                            shortestDistance = distance
+                            nearestEnemy = v
+                        end
+                    end
+                end
             end
         end
+    end)
+    
+    -- Si no encuentra el enemigo de la quest, devolver cualquier enemigo cercano
+    if not nearestEnemy then
+        return GetNearestEnemy()
     end
     
     return nearestEnemy
@@ -2058,6 +2077,26 @@ local function StartAutoFarm()
                         BringMobToPlayer(enemy)
                     end
                     
+                    -- Activar Fast Attack si está habilitado
+                    if Settings.FastAttack then
+                        pcall(function()
+                            local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+                            if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                                local ActiveController = CombatFrameworkLib.activeController
+                                ActiveController.hitboxMagnitude = 60
+                                ActiveController.active = false
+                                ActiveController.timeToNextAttack = 0
+                                ActiveController.attacking = false
+                                ActiveController.increment = 3
+                                ActiveController.blocking = false
+                                
+                                if ActiveController.blade then
+                                    ActiveController.blade:Hit()
+                                end
+                            end
+                        end)
+                    end
+                    
                     -- Atacar con el arma equipada
                     local weapon = GetCurrentWeapon()
                     if weapon then
@@ -2066,8 +2105,10 @@ local function StartAutoFarm()
                     
                     -- Si es Melee (sin arma), click para atacar
                     if not weapon and Settings.SelectedWeaponType == "Melee" then
-                        game:GetService("VirtualUser"):CaptureController()
-                        game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                        pcall(function()
+                            game:GetService("VirtualUser"):CaptureController()
+                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                        end)
                     end
                 end
             end
