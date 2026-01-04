@@ -1112,6 +1112,13 @@ local function StartAutoBoss()
         if not Settings.AutoBoss or Settings.SelectedBoss == "" then return end
         
         pcall(function()
+            -- Actualizar referencias de personaje si murió
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
             local boss = FindBoss(Settings.SelectedBoss)
             
             if boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
@@ -1133,9 +1140,37 @@ local function StartAutoBoss()
                     -- Posicionar y atacar
                     HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
+                    -- Activar Fast Attack si está habilitado
+                    if Settings.FastAttack then
+                        pcall(function()
+                            local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+                            if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                                local ActiveController = CombatFrameworkLib.activeController
+                                ActiveController.hitboxMagnitude = 60
+                                ActiveController.active = false
+                                ActiveController.timeToNextAttack = 0
+                                ActiveController.attacking = false
+                                ActiveController.increment = 3
+                                ActiveController.blocking = false
+                                
+                                if ActiveController.blade then
+                                    ActiveController.blade:Hit()
+                                end
+                            end
+                        end)
+                    end
+                    
                     local weapon = GetCurrentWeapon()
                     if weapon then
                         weapon:Activate()
+                    end
+                    
+                    -- Si es Melee (sin arma), click para atacar
+                    if not weapon and Settings.SelectedWeaponType == "Melee" then
+                        pcall(function()
+                            game:GetService("VirtualUser"):CaptureController()
+                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                        end)
                     end
                 end
             end
@@ -1520,7 +1555,7 @@ local function FindMaterialMob()
             for _, mobName in pairs(targetMobs) do
                 for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
                     if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
-                        if mob.Humanoid.Health > 0 then
+                        if mob.Humanoid.Health > 0 and mob.Parent then
                             local distance = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
                             if distance < shortestDistance then
                                 shortestDistance = distance
@@ -1545,9 +1580,21 @@ local function StartAutoMaterial()
         if not Settings.AutoMaterial then return end
         
         pcall(function()
+            -- Actualizar referencias de personaje si murió
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
             local mob = FindMaterialMob()
             
-            if mob and mob:FindFirstChild("HumanoidRootPart") then
+            if mob and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                -- Safe Mode check
+                if Settings.SafeMode and Humanoid.Health < (Humanoid.MaxHealth * 0.6) then
+                    return
+                end
+                
                 local distance = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
                 
                 -- Equipar arma del tipo seleccionado
@@ -1563,9 +1610,37 @@ local function StartAutoMaterial()
                         BringMobToPlayer(mob)
                     end
                     
+                    -- Activar Fast Attack si está habilitado
+                    if Settings.FastAttack then
+                        pcall(function()
+                            local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+                            if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                                local ActiveController = CombatFrameworkLib.activeController
+                                ActiveController.hitboxMagnitude = 60
+                                ActiveController.active = false
+                                ActiveController.timeToNextAttack = 0
+                                ActiveController.attacking = false
+                                ActiveController.increment = 3
+                                ActiveController.blocking = false
+                                
+                                if ActiveController.blade then
+                                    ActiveController.blade:Hit()
+                                end
+                            end
+                        end)
+                    end
+                    
                     local weapon = GetCurrentWeapon()
                     if weapon then
                         weapon:Activate()
+                    end
+                    
+                    -- Si es Melee (sin arma), click para atacar
+                    if not weapon and Settings.SelectedWeaponType == "Melee" then
+                        pcall(function()
+                            game:GetService("VirtualUser"):CaptureController()
+                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                        end)
                     end
                 end
             end
@@ -1589,24 +1664,38 @@ local function StartAutoBones()
         if not Settings.AutoBones then return end
         
         pcall(function()
+            -- Actualizar referencias de personaje si murió
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
             local boneMob = nil
             local shortestDist = Settings.FarmDistance
             
             if game.Workspace:FindFirstChild("Enemies") then
                 for _, mobName in pairs(BoneMobs) do
                     for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
-                        if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                            local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
-                            if dist < shortestDist then
-                                shortestDist = dist
-                                boneMob = mob
+                        if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
+                            if mob.Humanoid.Health > 0 and mob.Parent then
+                                local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                                if dist < shortestDist then
+                                    shortestDist = dist
+                                    boneMob = mob
+                                end
                             end
                         end
                     end
                 end
             end
             
-            if boneMob then
+            if boneMob and boneMob:FindFirstChild("HumanoidRootPart") and boneMob:FindFirstChild("Humanoid") and boneMob.Humanoid.Health > 0 then
+                -- Safe Mode check
+                if Settings.SafeMode and Humanoid.Health < (Humanoid.MaxHealth * 0.6) then
+                    return
+                end
+                
                 -- Equipar arma del tipo seleccionado
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
@@ -1622,9 +1711,37 @@ local function StartAutoBones()
                         BringMobToPlayer(boneMob)
                     end
                     
+                    -- Activar Fast Attack si está habilitado
+                    if Settings.FastAttack then
+                        pcall(function()
+                            local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+                            if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                                local ActiveController = CombatFrameworkLib.activeController
+                                ActiveController.hitboxMagnitude = 60
+                                ActiveController.active = false
+                                ActiveController.timeToNextAttack = 0
+                                ActiveController.attacking = false
+                                ActiveController.increment = 3
+                                ActiveController.blocking = false
+                                
+                                if ActiveController.blade then
+                                    ActiveController.blade:Hit()
+                                end
+                            end
+                        end)
+                    end
+                    
                     local weapon = GetCurrentWeapon()
                     if weapon then
                         weapon:Activate()
+                    end
+                    
+                    -- Si es Melee (sin arma), click para atacar
+                    if not weapon and Settings.SelectedWeaponType == "Melee" then
+                        pcall(function()
+                            game:GetService("VirtualUser"):CaptureController()
+                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                        end)
                     end
                 end
             end
@@ -1648,24 +1765,38 @@ local function StartAutoEctoplasm()
         if not Settings.AutoEctoplasm then return end
         
         pcall(function()
+            -- Actualizar referencias de personaje si murió
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
             local ectoMob = nil
             local shortestDist = Settings.FarmDistance
             
             if game.Workspace:FindFirstChild("Enemies") then
                 for _, mobName in pairs(EctoplasmMobs) do
                     for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
-                        if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                            local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
-                            if dist < shortestDist then
-                                shortestDist = dist
-                                ectoMob = mob
+                        if mob.Name == mobName and mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
+                            if mob.Humanoid.Health > 0 and mob.Parent then
+                                local dist = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+                                if dist < shortestDist then
+                                    shortestDist = dist
+                                    ectoMob = mob
+                                end
                             end
                         end
                     end
                 end
             end
             
-            if ectoMob then
+            if ectoMob and ectoMob:FindFirstChild("HumanoidRootPart") and ectoMob:FindFirstChild("Humanoid") and ectoMob.Humanoid.Health > 0 then
+                -- Safe Mode check
+                if Settings.SafeMode and Humanoid.Health < (Humanoid.MaxHealth * 0.6) then
+                    return
+                end
+                
                 -- Equipar arma del tipo seleccionado
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
@@ -1681,9 +1812,37 @@ local function StartAutoEctoplasm()
                         BringMobToPlayer(ectoMob)
                     end
                     
+                    -- Activar Fast Attack si está habilitado
+                    if Settings.FastAttack then
+                        pcall(function()
+                            local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
+                            if CombatFrameworkLib and CombatFrameworkLib.activeController then
+                                local ActiveController = CombatFrameworkLib.activeController
+                                ActiveController.hitboxMagnitude = 60
+                                ActiveController.active = false
+                                ActiveController.timeToNextAttack = 0
+                                ActiveController.attacking = false
+                                ActiveController.increment = 3
+                                ActiveController.blocking = false
+                                
+                                if ActiveController.blade then
+                                    ActiveController.blade:Hit()
+                                end
+                            end
+                        end)
+                    end
+                    
                     local weapon = GetCurrentWeapon()
                     if weapon then
                         weapon:Activate()
+                    end
+                    
+                    -- Si es Melee (sin arma), click para atacar
+                    if not weapon and Settings.SelectedWeaponType == "Melee" then
+                        pcall(function()
+                            game:GetService("VirtualUser"):CaptureController()
+                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1, 1))
+                        end)
                     end
                 end
             end
