@@ -378,18 +378,18 @@ end
 
 print("🔧 Sistema de remotes configurado")
 
--- Función para crear UI compacta móvil (260x380)
+-- Función para crear UI con sidebar (360x420)
 local function CreateUI()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "BFSHub"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Main Frame (más pequeño)
+    -- Main Frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 260, 0, 380)
-    MainFrame.Position = UDim2.new(0.5, -130, 0.5, -190)
+    MainFrame.Size = UDim2.new(0, 420, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -210, 0.5, -225)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
@@ -397,81 +397,132 @@ local function CreateUI()
     MainFrame.Parent = ScreenGui
     
     local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.CornerRadius = UDim.new(0, 12)
     Corner.Parent = MainFrame
-    
-    local Shadow = Instance.new("Frame")
-    Shadow.Name = "Shadow"
-    Shadow.Size = UDim2.new(1, 6, 1, 6)
-    Shadow.Position = UDim2.new(0, -3, 0, -3)
-    Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    Shadow.BackgroundTransparency = 0.7
-    Shadow.ZIndex = -1
-    Shadow.Parent = MainFrame
-    
-    local ShadowCorner = Instance.new("UICorner")
-    ShadowCorner.CornerRadius = UDim.new(0, 12)
-    ShadowCorner.Parent = Shadow
     
     -- Header
     local Header = Instance.new("Frame")
     Header.Name = "Header"
-    Header.Size = UDim2.new(1, 0, 0, 45)
+    Header.Size = UDim2.new(1, 0, 0, 50)
     Header.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     Header.BorderSizePixel = 0
     Header.Parent = MainFrame
     
     local HeaderCorner = Instance.new("UICorner")
-    HeaderCorner.CornerRadius = UDim.new(0, 10)
+    HeaderCorner.CornerRadius = UDim.new(0, 12)
     HeaderCorner.Parent = Header
+    
+    local HeaderFix = Instance.new("Frame")
+    HeaderFix.Size = UDim2.new(1, 0, 0, 20)
+    HeaderFix.Position = UDim2.new(0, 0, 1, -20)
+    HeaderFix.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+    HeaderFix.BorderSizePixel = 0
+    HeaderFix.Parent = Header
     
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
-    Title.Size = UDim2.new(1, -90, 1, 0)
-    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.Position = UDim2.new(0, 15, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Font = Enum.Font.GothamBold
-    Title.Text = "BFS Hub v4.2"
+    Title.Text = "🎮 BFS Hub v4.2"
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 16
+    Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Header
     
+    local SubTitle = Instance.new("TextLabel")
+    SubTitle.Name = "SubTitle"
+    SubTitle.Size = UDim2.new(1, -100, 0, 15)
+    SubTitle.Position = UDim2.new(0, 15, 0, 28)
+    SubTitle.BackgroundTransparency = 1
+    SubTitle.Font = Enum.Font.Gotham
+    SubTitle.Text = "Premium Edition"
+    SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
+    SubTitle.TextSize = 11
+    SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+    SubTitle.Parent = Header
+    
     local MinimizeBtn = Instance.new("TextButton")
     MinimizeBtn.Name = "MinimizeBtn"
-    MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
-    MinimizeBtn.Position = UDim2.new(1, -38, 0, 7)
+    MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
+    MinimizeBtn.Position = UDim2.new(1, -43, 0, 7)
     MinimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     MinimizeBtn.BorderSizePixel = 0
     MinimizeBtn.Font = Enum.Font.GothamBold
     MinimizeBtn.Text = "-"
     MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeBtn.TextSize = 20
+    MinimizeBtn.TextSize = 22
     MinimizeBtn.Parent = Header
     
     local MinimizeBtnCorner = Instance.new("UICorner")
-    MinimizeBtnCorner.CornerRadius = UDim.new(0, 6)
+    MinimizeBtnCorner.CornerRadius = UDim.new(0, 8)
     MinimizeBtnCorner.Parent = MinimizeBtn
     
-    -- ScrollingFrame compacto
-    local Scroll = Instance.new("ScrollingFrame")
-    Scroll.Name = "Scroll"
-    Scroll.Size = UDim2.new(1, -20, 1, -60)
-    Scroll.Position = UDim2.new(0, 10, 0, 50)
-    Scroll.BackgroundTransparency = 1
-    Scroll.BorderSizePixel = 0
-    Scroll.ScrollBarThickness = 4
-    Scroll.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 255)
-    Scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    Scroll.Parent = MainFrame
+    -- Sidebar
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 120, 1, -60)
+    Sidebar.Position = UDim2.new(0, 10, 0, 55)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = MainFrame
     
-    local Layout = Instance.new("UIListLayout")
-    Layout.SortOrder = Enum.SortOrder.LayoutOrder
-    Layout.Padding = UDim.new(0, 8)
-    Layout.Parent = Scroll
+    local SidebarCorner = Instance.new("UICorner")
+    SidebarCorner.CornerRadius = UDim.new(0, 8)
+    SidebarCorner.Parent = Sidebar
     
-    Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
+    local SidebarScroll = Instance.new("ScrollingFrame")
+    SidebarScroll.Name = "SidebarScroll"
+    SidebarScroll.Size = UDim2.new(1, -8, 1, -8)
+    SidebarScroll.Position = UDim2.new(0, 4, 0, 4)
+    SidebarScroll.BackgroundTransparency = 1
+    SidebarScroll.BorderSizePixel = 0
+    SidebarScroll.ScrollBarThickness = 3
+    SidebarScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 255)
+    SidebarScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    SidebarScroll.Parent = Sidebar
+    
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Padding = UDim.new(0, 6)
+    SidebarLayout.Parent = SidebarScroll
+    
+    SidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        SidebarScroll.CanvasSize = UDim2.new(0, 0, 0, SidebarLayout.AbsoluteContentSize.Y + 8)
+    end)
+    
+    -- Content Area
+    local ContentArea = Instance.new("Frame")
+    ContentArea.Name = "ContentArea"
+    ContentArea.Size = UDim2.new(0, 275, 1, -60)
+    ContentArea.Position = UDim2.new(0, 135, 0, 55)
+    ContentArea.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    ContentArea.BorderSizePixel = 0
+    ContentArea.Parent = MainFrame
+    
+    local ContentCorner = Instance.new("UICorner")
+    ContentCorner.CornerRadius = UDim.new(0, 8)
+    ContentCorner.Parent = ContentArea
+    
+    local ContentScroll = Instance.new("ScrollingFrame")
+    ContentScroll.Name = "ContentScroll"
+    ContentScroll.Size = UDim2.new(1, -12, 1, -12)
+    ContentScroll.Position = UDim2.new(0, 6, 0, 6)
+    ContentScroll.BackgroundTransparency = 1
+    ContentScroll.BorderSizePixel = 0
+    ContentScroll.ScrollBarThickness = 4
+    ContentScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 255)
+    ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentScroll.Parent = ContentArea
+    
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Padding = UDim.new(0, 8)
+    ContentLayout.Parent = ContentScroll
+    
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ContentScroll.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 10)
     end)
     
     -- Minimizar función
@@ -479,16 +530,70 @@ local function CreateUI()
     MinimizeBtn.MouseButton1Click:Connect(function()
         Minimized = not Minimized
         if Minimized then
-            MainFrame:TweenSize(UDim2.new(0, 260, 0, 45), "Out", "Quad", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 420, 0, 50), "Out", "Quad", 0.3, true)
             MinimizeBtn.Text = "+"
+            Sidebar.Visible = false
+            ContentArea.Visible = false
         else
-            MainFrame:TweenSize(UDim2.new(0, 260, 0, 380), "Out", "Quad", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 420, 0, 450), "Out", "Quad", 0.3, true)
             MinimizeBtn.Text = "-"
+            Sidebar.Visible = true
+            ContentArea.Visible = true
         end
     end)
     
     ScreenGui.Parent = Player:WaitForChild("PlayerGui")
-    return ScreenGui, Scroll
+    return ScreenGui, SidebarScroll, ContentScroll
+end
+
+-- Función para crear botones de categoría en sidebar
+local function CreateCategoryButton(parent, icon, text, callback)
+    local CategoryBtn = Instance.new("TextButton")
+    CategoryBtn.Name = text
+    CategoryBtn.Size = UDim2.new(1, 0, 0, 42)
+    CategoryBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+    CategoryBtn.BorderSizePixel = 0
+    CategoryBtn.Font = Enum.Font.GothamBold
+    CategoryBtn.Text = icon .. " " .. text
+    CategoryBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    CategoryBtn.TextSize = 12
+    CategoryBtn.TextXAlignment = Enum.TextXAlignment.Left
+    CategoryBtn.Parent = parent
+    
+    local Padding = Instance.new("UIPadding")
+    Padding.PaddingLeft = UDim.new(0, 12)
+    Padding.Parent = CategoryBtn
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = CategoryBtn
+    
+    CategoryBtn.MouseButton1Click:Connect(function()
+        -- Resetear todos los botones
+        for _, btn in pairs(parent:GetChildren()) do
+            if btn:IsA("TextButton") then
+                btn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+                btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+            end
+        end
+        
+        -- Activar este botón
+        CategoryBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 220)
+        CategoryBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        callback()
+    end)
+    
+    return CategoryBtn
+end
+
+-- Función para limpiar el área de contenido
+local function ClearContent(parent)
+    for _, child in pairs(parent:GetChildren()) do
+        if not child:IsA("UIListLayout") then
+            child:Destroy()
+        end
+    end
 end
 
 -- Función para crear Toggle
@@ -2004,7 +2109,7 @@ end)
 print("🎨 Creando interfaz de usuario...")
 
 -- Crear UI con protección de errores
-local success, result1, result2 = pcall(CreateUI)
+local success, result1, result2, result3 = pcall(CreateUI)
 if not success then
     warn("❌ Error al crear UI:", result1)
     error("No se pudo crear la interfaz")
@@ -2012,17 +2117,356 @@ if not success then
 end
 
 local GUI = result1
-local ScrollFrame = result2
+local Sidebar = result2
+local ContentArea = result3
 
-if not GUI or not ScrollFrame then
-    warn("❌ Error: UI o ScrollFrame es nil")
+if not GUI or not Sidebar or not ContentArea then
+    warn("❌ Error: UI, Sidebar o ContentArea es nil")
     error("No se pudo crear la interfaz correctamente")
     return
 end
 
 print("✅ UI creada exitosamente")
 
--- Secciones
+-- FUNCIONES PARA CREAR CADA CATEGORÍA
+
+-- 1. CATEGORÍA: FARMING
+local function ShowFarmingCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "📦 AUTO FARMING")
+    
+    CreateToggle(ContentArea, "Auto Farm", function(value)
+        Settings.AutoFarm = value
+        if value then
+            StartAutoFarm()
+        else
+            StopAutoFarm()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Auto Quest", function(value)
+        Settings.AutoQuest = value
+        if value then
+            TakeQuest()
+            StartAutoQuest()
+        else
+            StopAutoQuest()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Fast Attack", function(value)
+        Settings.FastAttack = value
+        if value then
+            StartFastAttack()
+        else
+            StopFastAttack()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Bring Mob", function(value)
+        Settings.BringMob = value
+    end)
+    
+    CreateSection(ContentArea, "⚔️ MASTERY")
+    
+    CreateToggle(ContentArea, "Auto Mastery", function(value)
+        Settings.AutoMastery = value
+        if value then
+            StartAutoMastery()
+        else
+            StopAutoMastery()
+        end
+    end)
+    
+    -- Lista de armas
+    local weapons = {}
+    for _, tool in pairs(Player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            table.insert(weapons, tool.Name)
+        end
+    end
+    
+    if #weapons > 0 then
+        CreateDropdown(ContentArea, "Weapon:", weapons, function(selected)
+            Settings.SelectedWeapon = selected
+        end)
+    end
+    
+    CreateSection(ContentArea, "🍎 FRUIT MASTERY")
+    
+    CreateToggle(ContentArea, "Auto Fruit Mastery", function(value)
+        Settings.AutoFruitMastery = value
+        if value then
+            StartAutoFruitMastery()
+        else
+            StopAutoFruitMastery()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Use Fruit Skills", function(value)
+        Settings.UseFruitSkills = value
+    end)
+end
+
+-- 2. CATEGORÍA: MATERIALS
+local function ShowMaterialsCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "💎 FARM MATERIALS")
+    
+    CreateToggle(ContentArea, "Auto Farm Material", function(value)
+        Settings.AutoMaterial = value
+        if value then
+            StartAutoMaterial()
+        else
+            StopAutoMaterial()
+        end
+    end)
+    
+    CreateDropdown(ContentArea, "Material:", MaterialList, function(selected)
+        Settings.SelectedMaterial = selected
+    end)
+    
+    CreateSection(ContentArea, "🦴 BONES & ECTOPLASM")
+    
+    CreateToggle(ContentArea, "Auto Farm Bones", function(value)
+        Settings.AutoBones = value
+        if value then
+            StartAutoBones()
+        else
+            StopAutoBones()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Auto Farm Ectoplasm", function(value)
+        Settings.AutoEctoplasm = value
+        if value then
+            StartAutoEctoplasm()
+        else
+            StopAutoEctoplasm()
+        end
+    end)
+end
+
+-- 3. CATEGORÍA: TELEPORTS
+local function ShowTeleportsCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "🗺️ ISLAND TELEPORTS")
+    
+    local currentSeaTeleports = {}
+    for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
+        table.insert(currentSeaTeleports, loc.Name)
+    end
+    
+    if #currentSeaTeleports > 0 then
+        CreateDropdown(ContentArea, "Select Island:", currentSeaTeleports, function(selected)
+            Settings.SelectedTeleport = selected
+        end)
+        
+        CreateButton(ContentArea, "🚀 Teleport to Island", function()
+            if Settings.SelectedTeleport then
+                for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
+                    if loc.Name == Settings.SelectedTeleport then
+                        TeleportToLocation(loc.Location)
+                        ShowNotification("📍 Teleport", "Viajando a " .. Settings.SelectedTeleport, 3)
+                        break
+                    end
+                end
+            else
+                ShowNotification("⚠️ Error", "Selecciona una isla primero", 2)
+            end
+        end)
+    end
+end
+
+-- 4. CATEGORÍA: BOSSES
+local function ShowBossesCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "👑 AUTO BOSS")
+    
+    CreateToggle(ContentArea, "Auto Boss", function(value)
+        Settings.AutoBoss = value
+        if value then
+            StartAutoBoss()
+        else
+            StopAutoBoss()
+        end
+    end)
+    
+    local currentSeaBosses = {}
+    for _, boss in pairs(BossList[Settings.CurrentSea] or {}) do
+        table.insert(currentSeaBosses, boss.Name)
+    end
+    
+    if #currentSeaBosses > 0 then
+        CreateDropdown(ContentArea, "Boss:", currentSeaBosses, function(selected)
+            Settings.SelectedBoss = selected
+        end)
+    end
+    
+    CreateSection(ContentArea, "🌊 EVENTS & CHESTS")
+    
+    CreateToggle(ContentArea, "Auto Sea Event", function(value)
+        Settings.AutoSeaEvent = value
+        if value then
+            StartAutoSeaEvent()
+        else
+            StopAutoSeaEvent()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Auto Chest", function(value)
+        Settings.AutoChest = value
+        if value then
+            StartAutoChest()
+        else
+            StopAutoChest()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Auto Mirage Island", function(value)
+        Settings.AutoMirageIsland = value
+        if value then
+            StartAutoMirageIsland()
+        else
+            StopAutoMirageIsland()
+        end
+    end)
+end
+
+-- 5. CATEGORÍA: FRUITS
+local function ShowFruitsCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "🍎 DEVIL FRUITS")
+    
+    CreateToggle(ContentArea, "Auto Collect Fruits", function(value)
+        Settings.AutoFruitCollect = value
+        if value then
+            StartAutoFruitCollect()
+        else
+            StopAutoFruitCollect()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Fruit Notifier", function(value)
+        Settings.FruitNotifier = value
+        if value then
+            StartFruitNotifier()
+        else
+            StopFruitNotifier()
+        end
+    end)
+end
+
+-- 6. CATEGORÍA: RAIDS
+local function ShowRaidsCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "⚔️ AUTO RAID")
+    
+    CreateToggle(ContentArea, "Auto Raid", function(value)
+        Settings.AutoRaid = value
+        if value then
+            StartAutoRaid()
+        else
+            StopAutoRaid()
+        end
+    end)
+    
+    if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
+        CreateDropdown(ContentArea, "Raid:", RaidList, function(selected)
+            Settings.SelectedRaid = selected
+        end)
+    end
+end
+
+-- 7. CATEGORÍA: HAKI
+local function ShowHakiCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "🥋 HAKI TRAINING")
+    
+    CreateToggle(ContentArea, "Auto Observation Haki", function(value)
+        Settings.AutoObservationHaki = value
+        if value then
+            StartAutoObservationHaki()
+        else
+            StopAutoObservationHaki()
+        end
+    end)
+    
+    CreateToggle(ContentArea, "Auto Armament Haki", function(value)
+        Settings.AutoArmamentHaki = value
+        if value then
+            StartAutoArmamentHaki()
+        else
+            StopAutoArmamentHaki()
+        end
+    end)
+end
+
+-- 8. CATEGORÍA: ESP
+local function ShowESPCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "👁️ ESP & VISUALS")
+    
+    CreateToggle(ContentArea, "Enable ESP", function(value)
+        Settings.EnableESP = value
+        if value then
+            EnableESP()
+        else
+            DisableESP()
+        end
+    end)
+end
+
+-- 9. CATEGORÍA: SETTINGS
+local function ShowSettingsCategory()
+    ClearContent(ContentArea)
+    
+    CreateSection(ContentArea, "⚙️ GENERAL SETTINGS")
+    
+    CreateToggle(ContentArea, "Safe Mode (60%)", function(value)
+        Settings.SafeMode = value
+    end)
+    
+    CreateSection(ContentArea, "📊 AUTO STATS")
+    
+    CreateToggle(ContentArea, "Enable Auto Stats", function(value)
+        Settings.AutoStats = value
+        if value then
+            StartAutoStats()
+        else
+            StopAutoStats()
+        end
+    end)
+    
+    CreateDropdown(ContentArea, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
+        Settings.SelectedStat = selected
+    end)
+end
+
+-- CREAR BOTONES DE CATEGORÍAS EN SIDEBAR
+CreateCategoryButton(Sidebar, "📦", "Farming", ShowFarmingCategory)
+CreateCategoryButton(Sidebar, "💎", "Materials", ShowMaterialsCategory)
+CreateCategoryButton(Sidebar, "🗺️", "Teleports", ShowTeleportsCategory)
+CreateCategoryButton(Sidebar, "👑", "Bosses", ShowBossesCategory)
+CreateCategoryButton(Sidebar, "🍎", "Fruits", ShowFruitsCategory)
+CreateCategoryButton(Sidebar, "⚔️", "Raids", ShowRaidsCategory)
+CreateCategoryButton(Sidebar, "🥋", "Haki", ShowHakiCategory)
+CreateCategoryButton(Sidebar, "👁️", "ESP", ShowESPCategory)
+CreateCategoryButton(Sidebar, "⚙️", "Settings", ShowSettingsCategory)
+
+-- Mostrar categoría inicial (Farming)
+ShowFarmingCategory()
+
+-- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
+--[[
 CreateSection(ScrollFrame, "📦 FARMING")
 
 CreateToggle(ScrollFrame, "Auto Farm", function(value)
@@ -2043,256 +2487,8 @@ CreateToggle(ScrollFrame, "Auto Quest", function(value)
         StopAutoQuest()
     end
 end)
-
-CreateToggle(ScrollFrame, "Fast Attack", function(value)
-    Settings.FastAttack = value
-    if value then
-        StartFastAttack()
-    else
-        StopFastAttack()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Bring Mob", function(value)
-    Settings.BringMob = value
-end)
-
-CreateSection(ScrollFrame, "👑 BOSS & EVENTS")
-
-CreateToggle(ScrollFrame, "Auto Boss", function(value)
-    Settings.AutoBoss = value
-    if value then
-        StartAutoBoss()
-    else
-        StopAutoBoss()
-    end
-end)
-
--- Crear lista de bosses según el Sea actual
-local currentSeaBosses = {}
-for _, boss in pairs(BossList[Settings.CurrentSea] or {}) do
-    table.insert(currentSeaBosses, boss.Name)
-end
-
-if #currentSeaBosses > 0 then
-    CreateDropdown(ScrollFrame, "Boss:", currentSeaBosses, function(selected)
-        Settings.SelectedBoss = selected
-    end)
-end
-
-CreateToggle(ScrollFrame, "Auto Sea Event", function(value)
-    Settings.AutoSeaEvent = value
-    if value then
-        StartAutoSeaEvent()
-    else
-        StopAutoSeaEvent()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Auto Chest", function(value)
-    Settings.AutoChest = value
-    if value then
-        StartAutoChest()
-    else
-        StopAutoChest()
-    end
-end)
-
-CreateSection(ScrollFrame, "💎 MATERIALS & BONES")
-
-CreateToggle(ScrollFrame, "Auto Farm Material", function(value)
-    Settings.AutoMaterial = value
-    if value then
-        StartAutoMaterial()
-    else
-        StopAutoMaterial()
-    end
-end)
-
-CreateDropdown(ScrollFrame, "Material:", MaterialList, function(selected)
-    Settings.SelectedMaterial = selected
-end)
-
-CreateToggle(ScrollFrame, "Auto Farm Bones", function(value)
-    Settings.AutoBones = value
-    if value then
-        StartAutoBones()
-    else
-        StopAutoBones()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Auto Farm Ectoplasm", function(value)
-    Settings.AutoEctoplasm = value
-    if value then
-        StartAutoEctoplasm()
-    else
-        StopAutoEctoplasm()
-    end
-end)
-
-CreateSection(ScrollFrame, "🍎 FRUITS")
-
-CreateToggle(ScrollFrame, "Auto Collect Fruits", function(value)
-    Settings.AutoFruitCollect = value
-    if value then
-        StartAutoFruitCollect()
-    else
-        StopAutoFruitCollect()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Fruit Notifier", function(value)
-    Settings.FruitNotifier = value
-    if value then
-        StartFruitNotifier()
-    else
-        StopFruitNotifier()
-    end
-end)
-
-CreateSection(ScrollFrame, "🏝️ SPECIAL ISLANDS")
-
-CreateToggle(ScrollFrame, "Auto Mirage Island", function(value)
-    Settings.AutoMirageIsland = value
-    if value then
-        StartAutoMirageIsland()
-    else
-        StopAutoMirageIsland()
-    end
-end)
-
-CreateSection(ScrollFrame, "⚔️ MASTERY & RAIDS")
-
-CreateToggle(ScrollFrame, "Auto Raid", function(value)
-    Settings.AutoRaid = value
-    if value then
-        StartAutoRaid()
-    else
-        StopAutoRaid()
-    end
-end)
-
-if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
-    CreateDropdown(ScrollFrame, "Raid:", RaidList, function(selected)
-        Settings.SelectedRaid = selected
-    end)
-end
-
-CreateToggle(ScrollFrame, "Auto Mastery", function(value)
-    Settings.AutoMastery = value
-    if value then
-        StartAutoMastery()
-    else
-        StopAutoMastery()
-    end
-end)
-
--- Lista de armas del jugador
-local weaponList = {"Combat"}
-for _, tool in pairs(Player.Backpack:GetChildren()) do
-    if tool:IsA("Tool") then
-        table.insert(weaponList, tool.Name)
-    end
-end
-
-CreateDropdown(ScrollFrame, "Weapon:", weaponList, function(selected)
-    Settings.SelectedWeapon = selected
-end)
-
-CreateToggle(ScrollFrame, "Auto Fruit Mastery", function(value)
-    Settings.AutoFruitMastery = value
-    if value then
-        StartAutoFruitMastery()
-    else
-        StopAutoFruitMastery()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Use Fruit Skills (Z/X/C/V)", function(value)
-    Settings.UseFruitSkills = value
-end)
-
-CreateSection(ScrollFrame, "🗺️ TELEPORTS")
-
--- Crear lista de teleports según el Sea actual
-local currentSeaTeleports = {}
-for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
-    table.insert(currentSeaTeleports, loc.Name)
-end
-
-if #currentSeaTeleports > 0 then
-    CreateDropdown(ScrollFrame, "Select Island:", currentSeaTeleports, function(selected)
-        Settings.SelectedTeleport = selected
-    end)
-    
-    CreateButton(ScrollFrame, "🚀 Teleport to Island", function()
-        if Settings.SelectedTeleport then
-            -- Buscar la ubicación y teleportarse
-            for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
-                if loc.Name == Settings.SelectedTeleport then
-                    TeleportToLocation(loc.Location)
-                    ShowNotification("📍 Teleport", "Viajando a " .. Settings.SelectedTeleport, 3)
-                    break
-                end
-            end
-        else
-            ShowNotification("⚠️ Error", "Selecciona una isla primero", 2)
-        end
-    end)
-end
-
-CreateSection(ScrollFrame, "🥋 HAKI TRAINING")
-
-CreateToggle(ScrollFrame, "Auto Observation Haki", function(value)
-    Settings.AutoObservationHaki = value
-    if value then
-        StartAutoObservationHaki()
-    else
-        StopAutoObservationHaki()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Auto Armament Haki", function(value)
-    Settings.AutoArmamentHaki = value
-    if value then
-        StartAutoArmamentHaki()
-    else
-        StopAutoArmamentHaki()
-    end
-end)
-
-CreateSection(ScrollFrame, "👁️ ESP & VISUALS")
-
-CreateToggle(ScrollFrame, "Enable ESP", function(value)
-    Settings.EnableESP = value
-    if value then
-        EnableESP()
-    else
-        DisableESP()
-    end
-end)
-
-CreateSection(ScrollFrame, "⚙️ SETTINGS")
-
-CreateToggle(ScrollFrame, "Safe Mode (60%)", function(value)
-    Settings.SafeMode = value
-end)
-
-CreateSection(ScrollFrame, "📊 AUTO STATS")
-
-CreateToggle(ScrollFrame, "Enable Auto Stats", function(value)
-    Settings.AutoStats = value
-    if value then
-        StartAutoStats()
-    else
-        StopAutoStats()
-    end
-end)
-
-CreateDropdown(ScrollFrame, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
-    Settings.SelectedStat = selected
-end)
+-- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
+--]]
 
 -- Inicialización
 print("========================================")
