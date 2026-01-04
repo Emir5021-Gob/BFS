@@ -1,30 +1,27 @@
 --[[
-    BFS Scripts v2.0
+    BFS Scripts v4.2 ULTIMATE
     Script de automatización para Blox Fruits
     Compatible con Delta Executor v2.702.622
     Autor: Emir5021-Gob
     Repositorio: github.com/Emir5021-Gob/BFS
 ]]
 
-print("🚀 BFS Scripts v2.0 - Iniciando...")
+print("🚀 BFS Scripts v4.2 ULTIMATE - Iniciando...")
 
 -- Configuración del repositorio
-local REPO_URL = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/refs/heads/main/"
+local REPO_URL = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/"
 
 -- Tabla de juegos soportados
 local SUPPORTED_GAMES = {
-    [2753915549] = {Name = "Blox Fruits [Sea 1]", Script = "BloxFruits.lua"},
-    [4442272183] = {Name = "Blox Fruits [Sea 2]", Script = "BloxFruits.lua"},
-    [7449423635] = {Name = "Blox Fruits [Sea 3]", Script = "BloxFruits.lua"},
+    [2753915549] = {Name = "Blox Fruits [Sea 1]", Script = "BloxFruits.luau"},
+    [4442272183] = {Name = "Blox Fruits [Sea 2]", Script = "BloxFruits.luau"},
+    [7449423635] = {Name = "Blox Fruits [Sea 3]", Script = "BloxFruits.luau"},
 }
 
 -- Obtener configuración del usuario
 local UserSettings = {...}
 local Settings = {
     Team = "Pirates", -- Pirates o Marines
-    AutoFarm = true,
-    AutoStats = true,
-    SafeMode = true,
 }
 
 -- Aplicar configuración del usuario
@@ -87,13 +84,18 @@ if not gameInfo then
 end
 
 print("✅ Juego detectado:", gameInfo.Name)
-print("📦 Cargando script...")
+print("📦 Cargando script del juego...")
+print("⏳ Espera un momento...")
 
 -- Cargar y ejecutar el script del juego
 local GameScript = LoadScript(gameInfo.Script)
 if GameScript then
-    local success, err = pcall(GameScript, Settings)
+    local success, err = pcall(GameScript)
     if not success then
         warn("❌ Error al ejecutar:", err)
+    else
+        print("✅ Script cargado exitosamente!")
     end
+else
+    warn("❌ No se pudo cargar el script del juego")
 end
