@@ -2896,7 +2896,29 @@ print("⚠️ TODAS LAS OPCIONES DESACTIVADAS")
 print("   Activa solo las que necesites usar")
 print("========================================")
 
-print("🎮 BFS Scripts cargado completamente!")
+-- Crear la UI
+local success, err = pcall(function()
+    local ScreenGui, SidebarScroll, ContentScroll = CreateUI()
+    
+    -- Crear botones de categorías en el sidebar
+    CreateCategoryButton(SidebarScroll, "🌾", "Farming", ShowFarmingCategory)
+    CreateCategoryButton(SidebarScroll, "💎", "Materials", ShowMaterialsCategory)
+    CreateCategoryButton(SidebarScroll, "🗺️", "Teleports", ShowTeleportsCategory)
+    CreateCategoryButton(SidebarScroll, "👑", "Bosses", ShowBossesCategory)
+    CreateCategoryButton(SidebarScroll, "🍎", "Fruits", ShowFruitsCategory)
+    CreateCategoryButton(SidebarScroll, "⚔️", "Raids", ShowRaidsCategory)
+    CreateCategoryButton(SidebarScroll, "🥋", "Haki", ShowHakiCategory)
+    CreateCategoryButton(SidebarScroll, "👁️", "ESP", ShowESPCategory)
+    CreateCategoryButton(SidebarScroll, "⚙️", "Settings", ShowSettingsCategory)
+    
+    -- Mostrar categoría inicial
+    ShowFarmingCategory()
+    
+    print("✅ UI creada exitosamente!")
+end)
 
--- Nota: El módulo completo de Blox Fruits está ofuscado en Module.luau
--- Este loader simplificado carga solo la UI para compatibilidad con Delta
+if not success then
+    warn("❌ Error al crear UI:", err)
+end
+
+print("🎮 BFS Scripts cargado completamente!")
