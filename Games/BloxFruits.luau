@@ -39,10 +39,15 @@ local Settings = {
     AutoChest = false,
     AutoSeaEvent = false,
     AutoMastery = false,
-    SafeMode = true,
+    AutoRaid = false,
+    AutoMirageIsland = false,
+    AutoFruitMastery = false,
+    UseFruitSkills = false,
+    SafeMode = false,
     SelectedStat = "Melee",
     SelectedWeapon = "Combat",
     SelectedBoss = "",
+    SelectedRaid = "Flame",
     AttackDistance = 3,
     FarmDistance = 350,
     TweenSpeed = 300,
@@ -138,6 +143,26 @@ local QuestList = {
         {Level = 2250, QuestGiver = "CakeQuest2", Enemy = "Sweet Thief", Location = CFrame.new(-1926, 37, -12850)},
         {Level = 2275, QuestGiver = "CakeQuest2", Enemy = "Candy Rebel", Location = CFrame.new(-1926, 37, -12850)},
         {Level = 2300, QuestGiver = "CakeQuest2", Enemy = "Candy Pirate", Location = CFrame.new(-1926, 37, -12850)},
+        {Level = 2325, QuestGiver = "ChocQuest1", Enemy = "Choco Commander", Location = CFrame.new(233, 24, -12200)},
+        {Level = 2350, QuestGiver = "ChocQuest2", Enemy = "Isle Outlaw", Location = CFrame.new(-12400, 332, -10490)},
+        {Level = 2375, QuestGiver = "ChocQuest2", Enemy = "Isle Champion", Location = CFrame.new(-12400, 332, -10490)},
+        {Level = 2400, QuestGiver = "TikiQuest2", Enemy = "Sun-kissed Warrior", Location = CFrame.new(-11900, 332, -10700)},
+        {Level = 2425, QuestGiver = "TikiQuest2", Enemy = "Tide Keeper", Location = CFrame.new(-11900, 332, -10700)},
+        {Level = 2450, QuestGiver = "TempleQuest", Enemy = "Stone Sentinel", Location = CFrame.new(-11500, 332, -10300)},
+        {Level = 2475, QuestGiver = "TempleQuest", Enemy = "Serpent Hunter", Location = CFrame.new(-11500, 332, -10300)},
+        {Level = 2500, QuestGiver = "ElephantQuest", Enemy = "Elemental Entity", Location = CFrame.new(-13300, 332, -8450)},
+        {Level = 2525, QuestGiver = "ElephantQuest", Enemy = "Storm Trooper", Location = CFrame.new(-13300, 332, -8450)},
+        {Level = 2550, QuestGiver = "RaiderQuest", Enemy = "Leviathan Pirate", Location = CFrame.new(-2500, 15, -12000)},
+        {Level = 2575, QuestGiver = "RaiderQuest", Enemy = "Beast Hunter", Location = CFrame.new(-2500, 15, -12000)},
+        {Level = 2600, QuestGiver = "DarkQuest", Enemy = "Void Reaver", Location = CFrame.new(-6200, 238, -12450)},
+        {Level = 2625, QuestGiver = "DarkQuest", Enemy = "Nightmare Pirate", Location = CFrame.new(-6200, 238, -12450)},
+        {Level = 2650, QuestGiver = "SkylandQuest", Enemy = "Azure Raider", Location = CFrame.new(-7850, 5545, -380)},
+        {Level = 2675, QuestGiver = "SkylandQuest", Enemy = "Skyborn Knight", Location = CFrame.new(-7850, 5545, -380)},
+        {Level = 2700, QuestGiver = "AncientQuest", Enemy = "Ancient Sentinel", Location = CFrame.new(-9500, 142, 5650)},
+        {Level = 2725, QuestGiver = "AncientQuest", Enemy = "Primordial Guardian", Location = CFrame.new(-9500, 142, 5650)},
+        {Level = 2750, QuestGiver = "FrostQuest2", Enemy = "Glacial Warrior", Location = CFrame.new(5500, 85, -6100)},
+        {Level = 2775, QuestGiver = "FrostQuest2", Enemy = "Frozen Sentinel", Location = CFrame.new(5500, 85, -6100)},
+        {Level = 2800, QuestGiver = "FinalQuest", Enemy = "Elite Warrior", Location = CFrame.new(-5000, 314, -3000)},
     }
 }
 
@@ -180,6 +205,20 @@ local BossList = {
         {Name = "Soul Reaper", Location = CFrame.new(-9515, 315, 6691)},
         {Name = "Dough King", Location = CFrame.new(-2151, 70, -12404)},
     }
+}
+
+-- Lista de Raids disponibles
+local RaidList = {
+    "Flame", "Ice", "Quake", "Light", "Dark", 
+    "String", "Rumble", "Magma", "Buddha", "Spider",
+    "Phoenix", "Portal", "Blizzard", "Dough"
+}
+
+-- Islas especiales que aparecen
+local SpecialIslands = {
+    MirageIsland = "MirageIsland",
+    PrehistoricIsland = "NightIsland",
+    SeaBeast = "SeaBeast"
 }
 
 -- Sistema de remotes de Blox Fruits
@@ -758,6 +797,227 @@ local function StopAutoMastery()
     end
 end
 
+-- Detectar Mirage Island
+local function CheckMirageIsland()
+    for _, v in pairs(game.Workspace._WorldOrigin:GetChildren()) do
+        if v.Name == "MirageIsland" then
+            return v
+        end
+    end
+    return nil
+end
+
+-- Auto Mirage Island (buscar y farmear en la isla)
+local MirageConnection
+local function StartAutoMirageIsland()
+    if MirageConnection then return end
+    
+    MirageConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoMirageIsland then return end
+        
+        pcall(function()
+            local mirageIsland = CheckMirageIsland()
+            
+            if mirageIsland then
+                -- Si existe Mirage Island, ir hacia ella
+                local mirageCenter = mirageIsland:GetModelCFrame()
+                local distance = (HumanoidRootPart.Position - mirageCenter.Position).Magnitude
+                
+                if distance > 100 then
+                    -- Volar hacia Mirage Island
+                    local direction = (mirageCenter.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
+                else
+                    -- Buscar NPCs o cofres en Mirage
+                    for _, npc in pairs(mirageIsland:GetDescendants()) do
+                        if npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") then
+                            local npcDistance = (HumanoidRootPart.Position - npc.HumanoidRootPart.Position).Magnitude
+                            if npcDistance < 50 then
+                                -- Farmear NPC
+                                if not GetCurrentWeapon() then
+                                    for _, tool in pairs(Player.Backpack:GetChildren()) do
+                                        if tool:IsA("Tool") then
+                                            Humanoid:EquipTool(tool)
+                                            break
+                                        end
+                                    end
+                                end
+                                
+                                HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                                local weapon = GetCurrentWeapon()
+                                if weapon then
+                                    weapon:Activate()
+                                end
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoMirageIsland()
+    if MirageConnection then
+        MirageConnection:Disconnect()
+        MirageConnection = nil
+    end
+end
+
+-- Auto Raid
+local RaidConnection
+local function StartAutoRaid()
+    if RaidConnection then return end
+    
+    RaidConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoRaid then return end
+        
+        pcall(function()
+            -- Verificar si está en una raid
+            local raidUI = Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("RaidsUI")
+            
+            if raidUI and raidUI.Visible then
+                -- Buscar enemigos de la raid
+                local enemy = GetNearestEnemy()
+                
+                if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                    local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                    
+                    -- Equipar arma
+                    if not GetCurrentWeapon() then
+                        for _, tool in pairs(Player.Backpack:GetChildren()) do
+                            if tool:IsA("Tool") then
+                                Humanoid:EquipTool(tool)
+                                break
+                            end
+                        end
+                    end
+                    
+                    if distance > Settings.AttackDistance + 2 then
+                        local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                        HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    else
+                        HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                        
+                        local weapon = GetCurrentWeapon()
+                        if weapon then
+                            weapon:Activate()
+                            
+                            -- Usar habilidades si es fruta
+                            if Settings.UseFruitSkills and weapon:FindFirstChild("RemoteFunctionShoot") then
+                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
+                                wait(0.1)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "Z", false, game)
+                                wait(0.5)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
+                                wait(0.1)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "X", false, game)
+                                wait(0.5)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "C", false, game)
+                                wait(0.1)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "C", false, game)
+                            end
+                        end
+                    end
+                end
+            else
+                -- Iniciar raid si no está en una
+                local Remote = GetBloxFruitsRemote()
+                if Remote and Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
+                    pcall(function()
+                        Remote:InvokeServer("RaidsNpc", "Select", Settings.SelectedRaid)
+                    end)
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoRaid()
+    if RaidConnection then
+        RaidConnection:Disconnect()
+        RaidConnection = nil
+    end
+end
+
+-- Auto Fruit Mastery (mejorado con skills)
+local FruitMasteryConnection
+local function StartAutoFruitMastery()
+    if FruitMasteryConnection then return end
+    
+    FruitMasteryConnection = RunService.Heartbeat:Connect(function()
+        if not Settings.AutoFruitMastery then return end
+        
+        pcall(function()
+            local enemy = GetNearestEnemy()
+            
+            if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                -- Buscar y equipar fruta del diablo
+                local fruitTool = nil
+                for _, tool in pairs(Player.Backpack:GetChildren()) do
+                    if tool:IsA("Tool") and tool:FindFirstChild("RemoteFunctionShoot") then
+                        fruitTool = tool
+                        break
+                    end
+                end
+                
+                if fruitTool then
+                    Humanoid:EquipTool(fruitTool)
+                    
+                    local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                    
+                    if distance > Settings.AttackDistance + 5 then
+                        local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                        HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    else
+                        HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance + 3)
+                        
+                        -- Usar habilidades Z, X, C, V si UseFruitSkills está activado
+                        if Settings.UseFruitSkills then
+                            local VIM = game:GetService("VirtualInputManager")
+                            
+                            -- Skill Z
+                            VIM:SendKeyEvent(true, "Z", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "Z", false, game)
+                            wait(0.8)
+                            
+                            -- Skill X
+                            VIM:SendKeyEvent(true, "X", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "X", false, game)
+                            wait(0.8)
+                            
+                            -- Skill C
+                            VIM:SendKeyEvent(true, "C", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "C", false, game)
+                            wait(0.8)
+                            
+                            -- Skill V (si existe)
+                            VIM:SendKeyEvent(true, "V", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "V", false, game)
+                            wait(1)
+                        else
+                            -- Solo clicks
+                            fruitTool:Activate()
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+local function StopAutoFruitMastery()
+    if FruitMasteryConnection then
+        FruitMasteryConnection:Disconnect()
+        FruitMasteryConnection = nil
+    end
+end
+
 -- Obtener enemigo más cercano
 local function GetNearestEnemy()
     local nearestEnemy = nil
@@ -1060,7 +1320,33 @@ CreateToggle(ScrollFrame, "Auto Chest", function(value)
     end
 end)
 
-CreateSection(ScrollFrame, "⚔️ MASTERY")
+CreateSection(ScrollFrame, "🏝️ SPECIAL ISLANDS")
+
+CreateToggle(ScrollFrame, "Auto Mirage Island", function(value)
+    Settings.AutoMirageIsland = value
+    if value then
+        StartAutoMirageIsland()
+    else
+        StopAutoMirageIsland()
+    end
+end)
+
+CreateSection(ScrollFrame, "⚔️ MASTERY & RAIDS")
+
+CreateToggle(ScrollFrame, "Auto Raid", function(value)
+    Settings.AutoRaid = value
+    if value then
+        StartAutoRaid()
+    else
+        StopAutoRaid()
+    end
+end)
+
+if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
+    CreateDropdown(ScrollFrame, "Raid:", RaidList, function(selected)
+        Settings.SelectedRaid = selected
+    end)
+end
 
 CreateToggle(ScrollFrame, "Auto Mastery", function(value)
     Settings.AutoMastery = value
@@ -1081,6 +1367,19 @@ end
 
 CreateDropdown(ScrollFrame, "Weapon:", weaponList, function(selected)
     Settings.SelectedWeapon = selected
+end)
+
+CreateToggle(ScrollFrame, "Auto Fruit Mastery", function(value)
+    Settings.AutoFruitMastery = value
+    if value then
+        StartAutoFruitMastery()
+    else
+        StopAutoFruitMastery()
+    end
+end)
+
+CreateToggle(ScrollFrame, "Use Fruit Skills (Z/X/C/V)", function(value)
+    Settings.UseFruitSkills = value
 end)
 
 CreateSection(ScrollFrame, "⚙️ SETTINGS")
@@ -1106,22 +1405,41 @@ end)
 
 -- Inicialización
 print("========================================")
-print("BFS Hub v4.0 COMPLETO Cargado")
+print("🎮 BFS Hub v4.1 - EDICIÓN COMPLETA")
 print("========================================")
-print("🌊 Sea Actual: " .. (Settings.CurrentSea == 1 and "Old World" or Settings.CurrentSea == 2 and "New World" or "Third Sea"))
-print("📊 Nivel del jugador:", Player.Data.Level.Value)
-print("⚔️ Quest disponible:", QuestData.QuestMob or "Ninguna")
+print("🌊 Sea: " .. (Settings.CurrentSea == 1 and "Old World (1)" or Settings.CurrentSea == 2 and "New World (2)" or "Third Sea (3)"))
+print("📊 Nivel: " .. Player.Data.Level.Value .. " / 2800")
+print("⚔️ Quest: " .. (QuestData.QuestMob or "Ninguna"))
 print("========================================")
-print("✅ Características:")
-print("  - Auto Farm con Quest")
-print("  - Fast Attack Optimizado")
-print("  - Auto Boss (Sea-specific)")
-print("  - Auto Sea Events")
-print("  - Auto Chest")
-print("  - Auto Mastery")
-print("  - Auto Stats")
-print("  - Bring Mob")
-print("  - Safe Mode")
+print("✅ CARACTERÍSTICAS DISPONIBLES:")
+print("")
+print("📦 FARMING:")
+print("  • Auto Farm + Quest (70+ quests)")
+print("  • Fast Attack Optimizado")
+print("  • Bring Mob Seguro")
+print("  • Safe Mode")
+print("")
+print("👑 BOSS & EVENTS:")
+print("  • Auto Boss (30+ bosses)")
+print("  • Auto Sea Events")
+print("  • Auto Chest")
+print("")
+print("🏝️ ISLAS ESPECIALES:")
+print("  • Auto Mirage Island")
+print("  • Detección de islas raras")
+print("")
+print("⚔️ MASTERY & RAIDS:")
+print("  • Auto Raid (14 raids)")
+print("  • Auto Mastery (armas)")
+print("  • Auto Fruit Mastery")
+print("  • Skills automáticas (Z/X/C/V)")
+print("")
+print("📊 STATS:")
+print("  • Auto Stats (5 opciones)")
+print("  • Anti-AFK")
+print("")
+print("⚠️ TODAS LAS OPCIONES APAGADAS")
+print("   Activa solo las que necesites")
 print("========================================")
 	print("🌐 Traductor activado")
 end
