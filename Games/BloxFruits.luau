@@ -890,48 +890,6 @@ local function EquipWeaponByType(weaponType)
     return false
 end
 
--- Obtener enemigo más cercano (MEJORADO)
-local function GetNearestEnemy()
-    local nearestEnemy = nil
-    local shortestDistance = 2000
-    
-    -- Buscar en Workspace.Enemies
-    if game.Workspace:FindFirstChild("Enemies") then
-        for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-            if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                if v.Humanoid.Health > 0 then
-                    local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        nearestEnemy = v
-                    end
-                end
-            end
-        end
-    end
-    
-    return nearestEnemy
-end
-
--- Obtener enemigo de quest específica (MEJORADO)
-local function GetQuestEnemy(mobName)
-    if not mobName then return GetNearestEnemy() end
-    
-    -- Buscar en Workspace.Enemies
-    if game.Workspace:FindFirstChild("Enemies") then
-        for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-            if v.Name == mobName and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                if v.Humanoid.Health > 0 then
-                    return v
-                end
-            end
-        end
-    end
-    
-    -- Si no se encuentra, devolver enemigo más cercano
-    return GetNearestEnemy()
-end
-
 -- Obtener cofre más cercano
 local function GetNearestChest()
     local nearestChest = nil
@@ -1915,7 +1873,7 @@ local function GetNearestEnemy()
         if game.Workspace:FindFirstChild("Enemies") then
             for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                 if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                    if v.Humanoid.Health > 0 then
+                    if v.Humanoid.Health > 0 and v.Parent then -- Verificar que existe y está vivo
                         local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
                         if distance < shortestDistance then
                             shortestDistance = distance
@@ -2045,6 +2003,13 @@ local function StartAutoFarm()
         if not Settings.AutoFarm then return end
         
         pcall(function()
+            -- Actualizar referencias de personaje si murió
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
             local enemy
             
             if Settings.AutoQuest and QuestData.QuestMob then
@@ -2053,7 +2018,7 @@ local function StartAutoFarm()
                 enemy = GetNearestEnemy()
             end
             
-            if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
+            if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
                 -- Safe Mode check
                 if Settings.SafeMode and Humanoid.Health < (Humanoid.MaxHealth * 0.6) then
                     return
@@ -2131,12 +2096,19 @@ local function StartAutoQuest()
     QuestConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoQuest then return end
         
+        wait(1) -- Evitar spam de quests
+        
         pcall(function()
-            local hasQuest = Player.PlayerGui.Main.Quest.Visible
+            local hasQuest = false
+            
+            -- Verificar si hay quest activa
+            if Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("Quest") then
+                hasQuest = Player.PlayerGui.Main.Quest.Visible
+            end
             
             if not hasQuest then
                 TakeQuest()
-                wait(1)
+                wait(2) -- Esperar a que la quest se active
             end
         end)
     end)
