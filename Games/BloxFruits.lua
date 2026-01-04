@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
+local TweenService = game:GetService("TweenService")
 
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
@@ -27,6 +28,10 @@ local BFS = {
     SafeMode = true,
     CurrentQuest = nil,
     SelectedStat = "Melee",
+    LastTeleport = 0,
+    TeleportCooldown = 0.5,
+    MaxFarmDistance = 3500,
+    CurrentEnemy = nil,
 }
 
 -- Anti-AFK
@@ -296,58 +301,96 @@ local function ToggleMinimize()
 end
 
 local function UpdateStatsInfo()
-    local level = Player.Data.Level.Value or 0
-    local melee = Player.Data.Stats.Melee.Level.Value or 0
-    local defense = Player.Data.Stats.Defense.Level.Value or 0
-    local sword = Player.Data.Stats.Sword.Level.Value or 0
-    local gun = Player.Data.Stats.Gun.Level.Value or 0
-    local fruit = Player.Data.Stats["Demon Fruit"].Level.Value or 0
-    
-    StatsInfo.Text = string.format(
-        "Nivel: %d\nMelee: %d | Defense: %d\nSword: %d | Gun: %d | Fruit: %d",
-        level, melee, defense, sword, gun, fruit
-    )
+    pcall(function()
+        if Player.Data and Player.Data.Level then
+            local level = Player.Data.Level.Value or 0
+            local melee = Player.Data.Stats.Melee.Level.Value or 0
+            local defense = Player.Data.Stats.Defense.Level.Value or 0
+            local sword = Player.Data.Stats.Sword.Level.Value or 0
+            local gun = Player.Data.Stats.Gun.Level.Value or 0
+            local fruit = Player.Data.Stats["Demon Fruit"].Level.Value or 0
+            
+            StatsInfo.Text = string.format(
+                "Nivel: %d\nMelee: %d | Defense: %d\nSword: %d | Gun: %d | Fruit: %d",
+                level, melee, defense, sword, gun, fruit
+            )
+        end
+    end)
 end
 
 local function GetNearestEnemy()
     local nearestEnemy = nil
-    local shortestDistance = math.huge
+    local shortestDistance = BFS.MaxFarmDistance
     
     for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
-        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-            local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                nearestEnemy = enemy
+        if enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") then
+            if enemy.Humanoid.Health > 0 then
+                local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestEnemy = enemy
+                end
             end
         end
     end
     
-    return nearestEnemy
+    return nearestEnemy, shortestDistance
 end
 
-local function FarmEnemy(enemy)
+local function FarmEnemy(enemy, distance)
     if not enemy or not enemy:FindFirstChild("Humanoid") or enemy.Humanoid.Health <= 0 then
+        BFS.CurrentEnemy = nil
         return false
     end
     
-    -- Safe Mode: Check health
-    if BFS.SafeMode and Humanoid.Health < Humanoid.MaxHealth * 0.5 then
-        UpdateStatus("⚠️ HP bajo!")
-        wait(3)
-        return false
+    -- Safe Mode: Verificar salud y humanoid
+    if BFS.SafeMode then
+        if Humanoid.Health < Humanoid.MaxHealth * 0.6 then
+            UpdateStatus("⚠️ HP bajo!")
+            wait(2)
+            return false
+        end
+        if not Humanoid or Humanoid.Health <= 0 then
+            return false
+        end
     end
     
-    -- Teletransportar al enemigo
-    local targetPos = enemy.HumanoidRootPart.Position
-    HumanoidRootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, 10, 0))
-    
-    -- Atacar
-    local tool = Player.Character:FindFirstChildOfClass("Tool")
-    if tool and tool:FindFirstChild("Handle") then
-        tool:Activate()
+    -- Verificar cooldown de teleport
+    local currentTime = tick()
+    if currentTime - BFS.LastTeleport < BFS.TeleportCooldown then
+        wait(0.1)
+        return true
     end
     
+    -- Solo teleportar si está muy lejos
+    if distance > 50 then
+        local targetPos = enemy.HumanoidRootPart.Position + Vector3.new(0, 15, 0)
+        
+        -- Teleport más seguro con pequeño delay
+        pcall(function()
+            HumanoidRootPart.CFrame = CFrame.new(targetPos)
+        end)
+        
+        BFS.LastTeleport = currentTime
+        wait(0.3)
+    end
+    
+    -- Atacar al enemigo
+    pcall(function()
+        local tool = Player.Character:FindFirstChildOfClass("Tool")
+        if tool then
+            -- Activar tool múltiples veces para asegurar hit
+            for i = 1, 3 do
+                tool:Activate()
+                wait(0.05)
+            end
+        end
+        
+        -- Hacer que el personaje mire al enemigo
+        HumanoidRootPart.CFrame = CFrame.new(HumanoidRootPart.Position, enemy.HumanoidRootPart.Position)
+    end)
+    
+    BFS.CurrentEnemy = enemy
     return true
 end
 
@@ -380,19 +423,22 @@ end
 local function AllocateStats()
     if not BFS.AutoStats then return end
     
-    local points = Player.Data.Points.Value
-    if points > 0 then
-        local stat = BFS.SelectedStat
-        local args = {
-            [1] = "AddPoint",
-            [2] = stat,
-            [3] = points
-        }
-        
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-        UpdateStatus("📊 +" .. points .. " puntos a " .. stat)
-        UpdateStatsInfo()
-    end
+    pcall(function()
+        if Player.Data and Player.Data.Points then
+            local points = Player.Data.Points.Value
+            if points > 0 then
+                local stat = BFS.SelectedStat
+                local args = {
+                    [1] = "AddPoint",
+                    [2] = stat,
+                    [3] = 1  -- Solo 1 punto a la vez para ser más seguro
+                }
+                
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                wait(0.1)
+            end
+        end
+    end)
 end
 
 local function StartAutoFarm()
@@ -403,25 +449,56 @@ local function StartAutoFarm()
     
     spawn(function()
         while BFS.Farming and BFS.Running do
-            -- Auto Quest
-            if BFS.AutoQuest and not Player.PlayerGui:FindFirstChild("Main").Quest.Visible then
-                TakeQuest()
+            -- Verificar si el personaje existe
+            if not Character or not Character:FindFirstChild("HumanoidRootPart") then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
                 wait(1)
             end
             
-            -- Auto Stats
-            AllocateStats()
-            
-            -- Farm
-            local enemy = GetNearestEnemy()
-            if enemy then
-                UpdateStatus("Farming " .. enemy.Name)
-                FarmEnemy(enemy)
-            else
-                UpdateStatus("Buscando...")
+            -- Auto Quest (menos frecuente)
+            if BFS.AutoQuest then
+                pcall(function()
+                    if Player.PlayerGui:FindFirstChild("Main") then
+                        if not Player.PlayerGui.Main.Quest.Visible then
+                            TakeQuest()
+                            wait(2)
+                        end
+                    end
+                end)
             end
             
-            wait(0.1)
+            -- Auto Stats (cada varios ciclos)
+            if math.random(1, 10) == 1 then
+                pcall(AllocateStats)
+            end
+            
+            -- Farm
+            local enemy, distance = GetNearestEnemy()
+            if enemy then
+                local enemyName = enemy.Name
+                if #enemyName > 15 then
+                    enemyName = enemyName:sub(1, 12) .. "..."
+                end
+                UpdateStatus("Farm: " .. enemyName)
+                
+                local success = pcall(function()
+                    FarmEnemy(enemy, distance)
+                end)
+                
+                if not success then
+                    BFS.CurrentEnemy = nil
+                    wait(1)
+                end
+            else
+                UpdateStatus("Sin enemigos")
+                BFS.CurrentEnemy = nil
+                wait(2)
+            end
+            
+            -- Delay más largo para evitar detección
+            wait(0.5)
         end
     end)
 end
