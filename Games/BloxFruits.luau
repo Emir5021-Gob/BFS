@@ -1041,9 +1041,8 @@ local function StartAutoChest()
                 local distance = (HumanoidRootPart.Position - chest.Root.Position).Magnitude
                 
                 if distance > 5 then
-                    -- Volar hacia el cofre
-                    local direction = (chest.Root.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
+                    -- Volar hacia el cofre con TeleportToLocation
+                    TeleportToLocation(CFrame.new(chest.Root.Position))
                 else
                     -- Activar cofre
                     if chest:FindFirstChild("Prompt") then
@@ -1087,12 +1086,11 @@ local function StartAutoSeaEvent()
                 end
                 
                 if distance > Settings.AttackDistance + 2 then
-                    -- Volar hacia evento
-                    local direction = (seaEvent.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    -- Volar hacia evento con TeleportToLocation
+                    TeleportToLocation(seaEvent.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
                     -- Atacar
-                    HumanoidRootPart.CFrame = seaEvent.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(seaEvent.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     local weapon = GetCurrentWeapon()
                     if weapon then
@@ -1144,12 +1142,11 @@ local function StartAutoBoss()
                     -- Distancia larga: usar teleport
                     TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 elseif distance > Settings.AttackDistance + 2 then
-                    -- Distancia media: volar
-                    local direction = (boss.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    -- Distancia media: volar con TeleportToLocation
+                    TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
                     -- Posicionar y atacar
-                    HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     -- Activar Fast Attack si está habilitado
                     if Settings.FastAttack then
@@ -1219,10 +1216,9 @@ local function StartAutoMastery()
                 if distance > 150 then
                     TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 elseif distance > Settings.AttackDistance + 2 then
-                    local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
-                    HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     local weapon = GetCurrentWeapon()
                     if weapon then
@@ -1275,9 +1271,8 @@ local function StartAutoMirageIsland()
                 local distance = (HumanoidRootPart.Position - mirageCenter.Position).Magnitude
                 
                 if distance > 100 then
-                    -- Volar hacia Mirage Island
-                    local direction = (mirageCenter.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
+                    -- Volar hacia Mirage Island con TeleportToLocation
+                    TeleportToLocation(mirageCenter)
                 else
                     -- Buscar NPCs o cofres en Mirage
                     for _, npc in pairs(mirageIsland:GetDescendants()) do
@@ -1294,7 +1289,7 @@ local function StartAutoMirageIsland()
                                     end
                                 end
                                 
-                                HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                                TeleportToLocation(npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                                 local weapon = GetCurrentWeapon()
                                 if weapon then
                                     weapon:Activate()
@@ -1361,11 +1356,11 @@ local function StartAutoRaid()
                     EquipWeaponByType(Settings.SelectedWeaponType)
                     
                     if distance > Settings.AttackDistance + 2 then
-                        local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                        HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                        -- Volar hacia enemigo con TeleportToLocation
+                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                     else
                         -- Posicionar para atacar
-                        HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                         
                         -- BringMob si está activado
                         if Settings.BringMob then
@@ -1421,14 +1416,14 @@ local function StartAutoRaid()
                     if currentTime - RaidStartTime > 10 then
                         RaidStartTime = currentTime
                         
-                        -- Paso 1: Teleport al Mysterious Scientist para comprar chip
+                        -- Paso 1: Ir al Mysterious Scientist para comprar chip
                         pcall(function()
                             if Settings.CurrentSea == 2 then
                                 -- Second Sea: Hot and Cold
-                                HumanoidRootPart.CFrame = CFrame.new(-6438, 250, -4498)
+                                TeleportToLocation(CFrame.new(-6438, 250, -4498))
                             elseif Settings.CurrentSea == 3 then
                                 -- Third Sea: Castle on the Sea
-                                HumanoidRootPart.CFrame = CFrame.new(-5017, 314, -2823)
+                                TeleportToLocation(CFrame.new(-5017, 314, -2823))
                             end
                         end)
                         
@@ -1470,10 +1465,10 @@ local function StartAutoRaid()
                             pcall(function()
                                 if Settings.CurrentSea == 2 then
                                     -- Second Sea: Tubos azules en Hot and Cold
-                                    HumanoidRootPart.CFrame = CFrame.new(-6555, 299, -4896)
+                                    TeleportToLocation(CFrame.new(-6555, 299, -4896))
                                 elseif Settings.CurrentSea == 3 then
                                     -- Third Sea: Plataformas amarillas en Castle on the Sea
-                                    HumanoidRootPart.CFrame = CFrame.new(-5411, 314, -2823)
+                                    TeleportToLocation(CFrame.new(-5411, 314, -2823))
                                 end
                             end)
                             
@@ -1526,10 +1521,10 @@ local function StartAutoFruitMastery()
                     local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                     
                     if distance > Settings.AttackDistance + 5 then
-                        local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                        HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                        -- Volar hacia enemigo con TeleportToLocation
+                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                     else
-                        HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance + 3)
+                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance + 3))
                         
                         -- Usar habilidades Z, X, C, V si UseFruitSkills está activado
                         if Settings.UseFruitSkills then
@@ -1656,10 +1651,10 @@ local function StartAutoMaterial()
                     -- Distancia larga: usar teleport
                     TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 elseif distance > Settings.AttackDistance + 2 then
-                    local direction = (mob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    -- Volar hacia mob con TeleportToLocation
+                    TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
-                    HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     if Settings.BringMob then
                         BringMobToPlayer(mob)
@@ -1760,10 +1755,10 @@ local function StartAutoBones()
                     -- Distancia larga: usar teleport
                     TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 elseif distance > Settings.AttackDistance + 2 then
-                    local direction = (boneMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    -- Volar hacia bone mob con TeleportToLocation
+                    TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
-                    HumanoidRootPart.CFrame = boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     if Settings.BringMob then
                         BringMobToPlayer(boneMob)
@@ -1861,10 +1856,10 @@ local function StartAutoEctoplasm()
                 local distance = (HumanoidRootPart.Position - ectoMob.HumanoidRootPart.Position).Magnitude
                 
                 if distance > Settings.AttackDistance + 2 then
-                    local direction = (ectoMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    -- Volar hacia mob con TeleportToLocation
+                    TeleportToLocation(ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
-                    HumanoidRootPart.CFrame = ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     if Settings.BringMob then
                         BringMobToPlayer(ectoMob)
@@ -1958,8 +1953,8 @@ local function StartAutoFruitCollect()
                     wait(0.3)
                 end
                 
-                -- Descender suavemente hacia la fruta
-                HumanoidRootPart.CFrame = fruit.Handle.CFrame + Vector3.new(0, 5, 0)
+                -- Descender suavemente hacia la fruta usando TeleportToLocation
+                TeleportToLocation(fruit.Handle.CFrame + Vector3.new(0, 5, 0))
                 wait(0.5)
                 
                 -- Store en inventario
@@ -2308,9 +2303,9 @@ local function TakeQuest()
     QuestData.QuestMob = selectedQuest.Enemy
     QuestData.QuestLevel = selectedQuest.Level
     
-    -- Teleport a NPC de quest
+    -- Ir a NPC de quest con TeleportToLocation
     pcall(function()
-        HumanoidRootPart.CFrame = selectedQuest.Location
+        TeleportToLocation(selectedQuest.Location)
     end)
     wait(0.5)
     
@@ -2392,12 +2387,11 @@ local function StartAutoFarm()
                     -- Distancia larga: usar teleport
                     TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 elseif distance > Settings.AttackDistance + 2 then
-                    -- Distancia media: volar
-                    local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
+                    -- Distancia media: volar con TeleportToLocation
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
                     -- Posicionar para atacar
-                    HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     -- BringMob si está activado
                     if Settings.BringMob then
