@@ -1,10 +1,7 @@
 -- BFS Premium Hub v4.2 - ULTIMATE EDITION
 -- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
--- VERSION: 482b41f - 04/01/2026
-
--- Test inicial ANTES de todo
-print("🚀 BFS: Script cargado en memoria")
+-- VERSION: ed636a0 - 04/01/2026
 
 -- Función para notificaciones móvil
 local function Notify(title, text, duration)
@@ -17,76 +14,45 @@ local function Notify(title, text, duration)
     end)
 end
 
-print("🚀 BFS: Función Notify creada")
+Notify("BFS v4.2", "Commit: ed636a0", 5)
+Notify("BFS DEBUG", "Script iniciado", 2)
 
--- Primera notificación ANTES de wait()
-Notify("BFS v4.2", "CARGANDO...", 5)
-print("🚀 BFS: Primera notificación enviada")
+-- Protección y verificaciones
+repeat wait() until game:IsLoaded()
+repeat wait() until game.Players
+repeat wait() until game.Players.LocalPlayer
+repeat wait() until game.Players.LocalPlayer.Character
 
--- Protección y verificaciones (con timeout)
-local timeout = 30
-local startTime = tick()
-
-print("🚀 BFS: Esperando game:IsLoaded()...")
-while not game:IsLoaded() do 
-    wait(0.1)
-    if tick() - startTime > timeout then
-        warn("❌ TIMEOUT: game:IsLoaded()")
-        return
-    end
-end
-print("✅ BFS: game:IsLoaded()")
-
-print("🚀 BFS: Esperando Players...")
-while not game.Players do 
-    wait(0.1)
-    if tick() - startTime > timeout then
-        warn("❌ TIMEOUT: Players")
-        return
-    end
-end
-print("✅ BFS: Players OK")
-
-print("🚀 BFS: Esperando LocalPlayer...")
-while not game.Players.LocalPlayer do 
-    wait(0.1)
-    if tick() - startTime > timeout then
-        warn("❌ TIMEOUT: LocalPlayer")
-        return
-    end
-end
-print("✅ BFS: LocalPlayer OK")
-
-print("🚀 BFS: Esperando Character...")
-while not game.Players.LocalPlayer.Character do 
-    wait(0.1)
-    if tick() - startTime > timeout then
-        warn("❌ TIMEOUT: Character")
-        return
-    end
-end
-print("✅ BFS: Character OK")
-
-Notify("BFS DEBUG", "✅ Verificaciones OK", 3)
-
-Notify("BFS DEBUG", "✅ Verificaciones OK", 3)
-
-print("🚀 BFS: Obteniendo servicios...")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
-print("✅ BFS: Servicios obtenidos")
 
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-print("✅ BFS: Player/Character/Humanoid OK")
 
-Notify("BFS DEBUG", "✅ Servicios cargados", 2)
+-- Remote correcto de Blox Fruits
+local RemotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_ = RemotesFolder:WaitForChild("CommF_")
+
+-- Cargar base de datos de quests
+local QuestsDatabase = loadstring(game:HttpGet("https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Utils/BloxFruits/GameModules/Quests.lua"))()
+
+-- Extender SimulationRadius para renderizar enemigos lejanos
+pcall(function()
+    local lp = Player
+    local sethidden = sethiddenproperty or set_hidden_property or set_hidden_prop
+    if sethidden then
+        sethidden(lp, "SimulationRadius", 9e9)
+        sethidden(lp, "MaxSimulationRadius", 9e9)
+    end
+end)
+
+Notify("BFS DEBUG", "Servicios cargados", 2)
 
 -- Detectar Sea actual
 local function GetCurrentSea()
@@ -148,14 +114,17 @@ local Settings = {
 -- Notificaciones
 local Notifications = {}
 
+-- Quest Data mejorado
 local QuestData = {
-    CurrentQuest = nil,
+    CurrentQuestGiver = nil,
+    CurrentQuestNumber = 1,
     QuestMob = nil,
-    QuestLevel = 1
+    QuestLevel = 1,
+    LastQuestCheck = 0
 }
 
--- Lista de quests COMPLETA por nivel y sea
-local QuestList = {
+-- SISTEMA DE QUESTS ELIMINADO - Ahora usa QuestsDatabase.lua
+-- local QuestList = {
     -- SEA 1 (Old World) - Nivel 1-700
     [1] = {
         {Level = 1, QuestGiver = "BanditQuest1", Enemy = "Bandit", Location = CFrame.new(1059, 16, 1544)},
@@ -861,11 +830,24 @@ end
 
 -- Sistema de Fast Attack optimizado
 local FastAttackConnection
+-- Fast Attack con RegisterAttack y RegisterHit remotes
+local RegisterAttack, RegisterHit
+pcall(function()
+    RegisterAttack = RemotesFolder:WaitForChild("RegisterAttack", 2)
+    RegisterHit = RemotesFolder:WaitForChild("RegisterHit", 2)
+end)
+
+local LastHitTime = 0
+local HitCooldown = 0.1
+
 local function StartFastAttack()
     if FastAttackConnection then return end
     
     FastAttackConnection = RunService.Heartbeat:Connect(function()
         if not Settings.FastAttack then return end
+        
+        local currentTime = tick()
+        if currentTime - LastHitTime < HitCooldown then return end
         
         pcall(function()
             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -878,10 +860,31 @@ local function StartFastAttack()
                 ActiveController.increment = 3
                 ActiveController.blocking = false
                 
-                -- Activar ataque
+                -- Usar RegisterAttack si está disponible
+                if RegisterAttack then
+                    RegisterAttack:FireServer()
+                end
+                
+                -- Activar ataque con getBladeHits
                 if ActiveController.blade then
                     ActiveController.blade:Hit()
+                    
+                    -- Enviar hits al servidor via RegisterHit
+                    if RegisterHit then
+                        local bladehit = require(ReplicatedStorage.CombatFramework.RigLib).getBladeHits(
+                            Character,
+                            {HumanoidRootPart},
+                            60
+                        )
+                        if bladehit then
+                            for _, v in pairs(bladehit) do
+                                RegisterHit:FireServer(v)
+                            end
+                        end
+                    end
                 end
+                
+                LastHitTime = currentTime
             end
         end)
     end)
@@ -905,12 +908,28 @@ local function GetCurrentWeapon()
 end
 
 -- Equipar arma específica por nombre
+-- Equipar arma específica por nombre (usa CommF_ para verificar)
 local function EquipWeapon(weaponName)
+    -- Intentar equipar desde Backpack
     local tool = Player.Backpack:FindFirstChild(weaponName)
     if tool and tool:IsA("Tool") then
-        Humanoid:EquipTool(tool)
+        pcall(function()
+            Humanoid:EquipTool(tool)
+        end)
         return true
     end
+    
+    -- Si no está en Backpack, verificar si ya está equipada
+    local equipped = Character:FindFirstChild(weaponName)
+    if equipped and equipped:IsA("Tool") then
+        return true
+    end
+    
+    -- Solicitar arma via CommF_ si no existe
+    pcall(function()
+        CommF_:InvokeServer("LoadItem", weaponName)
+    end)
+    
     return false
 end
 
@@ -2400,52 +2419,54 @@ local function GetQuestEnemy(enemyName)
     return nearestEnemy
 end
 
--- Tomar quest
+-- Tomar quest (usando QuestsDatabase.lua)
 local function TakeQuest()
-    local Remote = GetBloxFruitsRemote()
-    if not Remote then 
-        warn("⚠️ No se pudo obtener remote para quest")
+    if not CommF_ then 
+        warn("⚠️ CommF_ remote no disponible")
         return false 
     end
     
     local playerLevel = GetPlayerLevel()
-    local selectedQuest = nil
+    local selectedQuestGiver = nil
+    local selectedQuestNumber = 1
+    local selectedEnemy = nil
     
-    -- Obtener lista de quests del sea actual
-    local currentSeaQuests = QuestList[Settings.CurrentSea] or QuestList[1]
-    
-    -- Encontrar quest apropiada para el nivel
-    for i = #currentSeaQuests, 1, -1 do
-        if playerLevel >= currentSeaQuests[i].Level then
-            selectedQuest = currentSeaQuests[i]
-            break
+    -- Buscar en QuestsDatabase la quest apropiada
+    for questGiver, quests in pairs(QuestsDatabase) do
+        for questNum, questData in ipairs(quests) do
+            if playerLevel >= questData.LevelReq then
+                -- Obtener el enemigo del Task (primer key)
+                for enemyName, count in pairs(questData.Task) do
+                    selectedQuestGiver = questGiver
+                    selectedQuestNumber = questNum
+                    selectedEnemy = enemyName
+                    break
+                end
+            end
         end
     end
     
-    if not selectedQuest then 
-        warn("⚠️ No se encontró quest apropiada para nivel", playerLevel)
+    if not selectedQuestGiver then 
+        warn("⚠️ No se encontró quest para nivel", playerLevel)
         return false 
     end
     
-    QuestData.CurrentQuest = selectedQuest.QuestGiver
-    QuestData.QuestMob = selectedQuest.Enemy
-    QuestData.QuestLevel = selectedQuest.Level
+    QuestData.CurrentQuestGiver = selectedQuestGiver
+    QuestData.CurrentQuestNumber = selectedQuestNumber
+    QuestData.QuestMob = selectedEnemy
+    QuestData.QuestLevel = playerLevel
     
-    -- Hacer proceso asíncrono para no bloquear
+    -- Hacer proceso asíncrono
     spawn(function()
-        -- Ir a NPC de quest con TeleportToLocation
-        pcall(function()
-            TeleportToLocation(selectedQuest.Location)
-        end)
-        task.wait(0.5)
+        task.wait(0.3)
         
-        -- Tomar quest via remote
+        -- Tomar quest via CommF_
         local success = pcall(function()
-            Remote:InvokeServer("StartQuest", selectedQuest.QuestGiver, 1)
+            CommF_:InvokeServer("StartQuest", selectedQuestGiver, selectedQuestNumber)
         end)
         
         if success then
-            print("✅ Quest tomada:", selectedQuest.Enemy, "- Nivel", selectedQuest.Level)
+            print("✅ Quest tomada:", selectedEnemy, "- Nivel", playerLevel)
         else
             warn("⚠️ Error al tomar quest")
         end
@@ -2455,27 +2476,63 @@ local function TakeQuest()
 end
 
 -- BringMob (reducido para seguridad)
+-- BringMobs con AlignPosition (sistema seguro)
+local BringAttachment = Instance.new("Attachment")
+local AlignPos = Instance.new("AlignPosition")
+AlignPos.Attachment0 = BringAttachment
+AlignPos.RigidityEnabled = false
+AlignPos.ReactionForceEnabled = false
+AlignPos.ApplyAtCenterOfMass = true
+AlignPos.MaxForce = 9e9
+AlignPos.MaxVelocity = 9e9
+AlignPos.Responsiveness = 200
+AlignPos.Parent = BringAttachment
+
+local BroughtMobs = {}
+
 local function BringMobToPlayer(enemy)
     if not Settings.BringMob or not enemy then return end
+    if not enemy:FindFirstChild("HumanoidRootPart") or not enemy:FindFirstChild("Humanoid") then return end
+    if BroughtMobs[enemy] then return end -- Ya traído
     
-    pcall(function()
-        if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-            enemy.HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 0, -Settings.AttackDistance)
-            enemy.HumanoidRootPart.CanCollide = false
-            enemy.HumanoidRootPart.Size = Vector3.new(10, 10, 10)
+    local enemyRoot = enemy.HumanoidRootPart
+    local humanoid = enemy.Humanoid
+    
+    if humanoid.Health > 0 then
+        pcall(function()
+            -- Usar AlignPosition en lugar de CFrame directo
+            local att = BringAttachment:Clone()
+            att.Parent = enemyRoot
+            att.WorldPosition = HumanoidRootPart.Position + Vector3.new(0, -5, 0)
+            
+            local alignPos = att:FindFirstChildOfClass("AlignPosition")
+            if alignPos then
+                alignPos.Attachment1 = att
+            end
+            
+            enemyRoot.CanCollide = false
+            enemyRoot.Size = Vector3.new(10, 10, 10)
             
             if enemy:FindFirstChild("Head") then
                 enemy.Head.CanCollide = false
             end
             
-            if enemy.Humanoid:FindFirstChild("Animator") then
-                enemy.Humanoid.Animator:Destroy()
+            if humanoid:FindFirstChild("Animator") then
+                humanoid.Animator:Destroy()
             end
             
-            enemy.Humanoid:ChangeState(14)
-            enemy.Humanoid.WalkSpeed = 0
-        end
-    end)
+            humanoid:ChangeState(14)
+            humanoid.WalkSpeed = 0
+            
+            BroughtMobs[enemy] = true
+            
+            -- Limpiar cuando muera
+            humanoid.Died:Connect(function()
+                BroughtMobs[enemy] = nil
+                if att then att:Destroy() end
+            end)
+        end)
+    end
 end
 
 -- Sistema de Auto Farm (optimizado)
