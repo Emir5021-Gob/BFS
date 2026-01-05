@@ -25,6 +25,8 @@ local GAMES = {
     [13498489180] = "BloxFruits.luau", -- BETA
     [15541073133] = "BloxFruits.luau", -- BETA 2
     [17078241790] = "BloxFruits.luau", -- Private Server variant
+    -- Servidores Privados / VIP
+    [100117331123089] = "BloxFruits.luau", -- Sea 3 Private
 }
 
 -- Detectar juego
