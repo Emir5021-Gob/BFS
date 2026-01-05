@@ -2452,6 +2452,9 @@ if not GUI or not Sidebar or not ContentArea then
     return
 end
 
+-- Insertar UI en PlayerGui
+GUI.Parent = Player:WaitForChild("PlayerGui")
+
 print("✅ UI creada exitosamente")
 
 -- FUNCIONES PARA CREAR CADA CATEGORÍA
