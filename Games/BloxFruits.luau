@@ -956,10 +956,11 @@ end
 -- Obtener cofre más cercano
 local function GetNearestChest()
     local nearestChest = nil
-    local shortestDistance = 1000
+    local shortestDistance = 5000  -- Radio ampliado
     
+    -- Buscar en Workspace
     for _, v in pairs(game.Workspace:GetChildren()) do
-        if v.Name:find("Chest") and v:FindFirstChild("Root") then
+        if (v.Name:find("Chest") or v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3") and v:FindFirstChild("Root") then
             local distance = (HumanoidRootPart.Position - v.Root.Position).Magnitude
             if distance < shortestDistance then
                 shortestDistance = distance
@@ -967,6 +968,21 @@ local function GetNearestChest()
             end
         end
     end
+    
+    -- Buscar también en _WorldOrigin si existe
+    pcall(function()
+        if game.Workspace:FindFirstChild("_WorldOrigin") then
+            for _, v in pairs(game.Workspace._WorldOrigin:GetChildren()) do
+                if (v.Name:find("Chest") or v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3") and v:FindFirstChild("Root") then
+                    local distance = (HumanoidRootPart.Position - v.Root.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestChest = v
+                    end
+                end
+            end
+        end
+    end)
     
     return nearestChest
 end
@@ -1028,8 +1044,10 @@ local function FindBoss(bossName)
     return foundBoss
 end
 
--- Auto Chest
+-- Auto Chest (mejorado con farming de enemigos)
 local ChestConnection
+local LastChestSearch = 0
+local NoChestTime = 0
 local function StartAutoChest()
     if ChestConnection then return end
     
@@ -1037,18 +1055,64 @@ local function StartAutoChest()
         if not Settings.AutoChest then return end
         
         pcall(function()
+            -- Actualizar referencias si es necesario
+            if not Character or not Character.Parent then
+                Character = Player.Character or Player.CharacterAdded:Wait()
+                Humanoid = Character:WaitForChild("Humanoid")
+                HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
             local chest = GetNearestChest()
+            local currentTime = tick()
             
             if chest and chest:FindFirstChild("Root") then
+                NoChestTime = 0  -- Reset contador de no cofres
                 local distance = (HumanoidRootPart.Position - chest.Root.Position).Magnitude
                 
-                if distance > 5 then
-                    -- Volar hacia el cofre con TeleportToLocation
-                    TeleportToLocation(CFrame.new(chest.Root.Position))
+                if distance > 8 then
+                    -- Mover hacia cofre
+                    TeleportToLocation(CFrame.new(chest.Root.Position) + Vector3.new(0, 3, 0))
                 else
-                    -- Activar cofre
+                    -- Cerca del cofre: intentar abrir
+                    TeleportToLocation(CFrame.new(chest.Root.Position) + Vector3.new(0, 1, 0))
+                    
+                    -- Activación múltiple para asegurar apertura
                     if chest:FindFirstChild("Prompt") then
-                        fireproximityprompt(chest.Prompt)
+                        for i = 1, 3 do
+                            fireproximityprompt(chest.Prompt)
+                        end
+                    end
+                end
+                LastChestSearch = currentTime
+            else
+                -- No hay cofres cerca: farmear enemigos mientras esperamos respawn
+                if currentTime - LastChestSearch > 5 then
+                    NoChestTime = NoChestTime + 1
+                    
+                    -- Si no hay cofres por mucho tiempo, farmear enemigos
+                    if NoChestTime > 100 then  -- ~1.5 segundos sin cofres
+                        local enemy = GetNearestEnemy()
+                        
+                        if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                            local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                            
+                            -- Equipar arma
+                            EquipWeaponByType(Settings.SelectedWeaponType)
+                            
+                            if distance > 150 then
+                                TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                            elseif distance > Settings.AttackDistance + 2 then
+                                TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                            else
+                                TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                                
+                                -- Atacar
+                                local weapon = GetCurrentWeapon()
+                                if weapon then
+                                    weapon:Activate()
+                                end
+                            end
+                        end
                     end
                 end
             end
@@ -2363,8 +2427,9 @@ local function BringMobToPlayer(enemy)
     end)
 end
 
--- Sistema de Auto Farm
+-- Sistema de Auto Farm (optimizado)
 local FarmConnection
+local LastQuestCheck = 0
 local function StartAutoFarm()
     if FarmConnection then return end
     
@@ -2377,6 +2442,15 @@ local function StartAutoFarm()
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
                 HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            end
+            
+            -- Auto Quest: verificar y tomar quest cada 30 segundos
+            local currentTime = tick()
+            if Settings.AutoQuest and currentTime - LastQuestCheck > 30 then
+                LastQuestCheck = currentTime
+                spawn(function()
+                    TakeQuest()
+                end)
             end
             
             local enemy
@@ -2395,18 +2469,21 @@ local function StartAutoFarm()
                 
                 local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                 
-                -- Equipar arma del tipo seleccionado
-                EquipWeaponByType(Settings.SelectedWeaponType)
+                -- Equipar arma del tipo seleccionado (solo si no la tenemos)
+                local currentWeapon = GetCurrentWeapon()
+                if not currentWeapon then
+                    EquipWeaponByType(Settings.SelectedWeaponType)
+                end
                 
-                -- Mover hacia el enemigo
-                if distance > 150 then
-                    -- Distancia larga: usar teleport
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                elseif distance > Settings.AttackDistance + 2 then
-                    -- Distancia media: volar con TeleportToLocation
+                -- Mover hacia el enemigo (distancias optimizadas)
+                if distance > 200 then
+                    -- Muy lejos: teleport directo
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0))
+                elseif distance > Settings.AttackDistance + 5 then
+                    -- Distancia media: acercarse
                     TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
                 else
-                    -- Posicionar para atacar
+                    -- Rango de ataque: posicionar y atacar
                     TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
                     
                     -- BringMob si está activado
@@ -2420,11 +2497,11 @@ local function StartAutoFarm()
                             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
                             if CombatFrameworkLib and CombatFrameworkLib.activeController then
                                 local ActiveController = CombatFrameworkLib.activeController
-                                ActiveController.hitboxMagnitude = 60
+                                ActiveController.hitboxMagnitude = 65
                                 ActiveController.active = false
                                 ActiveController.timeToNextAttack = 0
                                 ActiveController.attacking = false
-                                ActiveController.increment = 3
+                                ActiveController.increment = 4
                                 ActiveController.blocking = false
                                 
                                 if ActiveController.blade then
