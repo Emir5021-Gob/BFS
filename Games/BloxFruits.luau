@@ -2,16 +2,23 @@
 -- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
 
-print("🔵 DEBUG: Script iniciado - Línea 1")
+-- Función para notificaciones móvil
+local function Notify(title, text, duration)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = duration or 3,
+        })
+    end)
+end
+
+Notify("BFS DEBUG", "Script iniciado", 2)
 
 -- Protección y verificaciones
-print("🔵 DEBUG: Esperando game:IsLoaded()...")
 repeat wait() until game:IsLoaded()
-print("🔵 DEBUG: Esperando Players...")
 repeat wait() until game.Players
-print("🔵 DEBUG: Esperando LocalPlayer...")
 repeat wait() until game.Players.LocalPlayer
-print("🔵 DEBUG: Esperando Character...")
 repeat wait() until game.Players.LocalPlayer.Character
 
 local Players = game:GetService("Players")
@@ -21,18 +28,12 @@ local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 
-print("🔵 DEBUG: Obteniendo Player...")
 local Player = Players.LocalPlayer
-print("🔵 DEBUG: Player:", Player.Name)
 local Character = Player.Character or Player.CharacterAdded:Wait()
-print("🔵 DEBUG: Character obtenido")
 local Humanoid = Character:WaitForChild("Humanoid")
-print("🔵 DEBUG: Humanoid obtenido")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-print("🔵 DEBUG: HumanoidRootPart obtenido")
 
-print("✅ BFS Hub v4.2 - Servicios cargados")
-print("✅ Personaje detectado:", Player.Name)
+Notify("BFS DEBUG", "Servicios cargados", 2)
 
 -- Detectar Sea actual
 local function GetCurrentSea()
@@ -2440,45 +2441,43 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function(time)
     VirtualInputManager:SendKeyEvent(false, "W", false, game)
 end)
 
-print("🎨 Creando interfaz de usuario...")
-print("🔵 DEBUG: Antes de CreateUI()")
+Notify("BFS DEBUG", "Creando UI...", 2)
 
 -- Variables globales para UI (necesarias para las funciones Show*Category)
 local GUI, Sidebar, ContentArea
 
 -- Crear UI con protección de errores
-print("🔵 DEBUG: Llamando CreateUI() con pcall...")
 local success, result1, result2, result3 = pcall(CreateUI)
-print("🔵 DEBUG: pcall terminó. success=", success)
+
+if not success then
+    Notify("ERROR", "CreateUI falló: " .. tostring(result1), 10)
+    error("CreateUI falló")
+    return
+end
+
+Notify("BFS DEBUG", "CreateUI exitoso", 2)
 if not success then
     warn("❌ Error al crear UI:", result1)
     error("No se pudo crear la interfaz")
     return
 end
 
-print("🔵 DEBUG: Asignando resultados...")
 GUI = result1
-print("🔵 DEBUG: GUI=", GUI)
 Sidebar = result2
-print("🔵 DEBUG: Sidebar=", Sidebar)
 ContentArea = result3
-print("🔵 DEBUG: ContentArea=", ContentArea)
 
 if not GUI or not Sidebar or not ContentArea then
-    warn("❌ Error: UI, Sidebar o ContentArea es nil")
+    Notify("ERROR", "UI es nil", 10)
     error("No se pudo crear la interfaz correctamente")
     return
 end
 
-print("🔵 DEBUG: Insertando GUI en PlayerGui...")
+Notify("BFS DEBUG", "Insertando en PlayerGui", 2)
+
 -- Insertar UI en PlayerGui
 GUI.Parent = Player:WaitForChild("PlayerGui")
-print("🔵 DEBUG: GUI insertado en PlayerGui")
 
-print("✅ UI creada exitosamente")
-print("🔵 DEBUG: Verificando si GUI está visible...")
-print("🔵 DEBUG: GUI.Parent=", GUI.Parent)
-print("🔵 DEBUG: GUI visible en PlayerGui")
+Notify("BFS HUB", "✅ Cargado exitosamente!", 5)
 
 -- FUNCIONES PARA CREAR CADA CATEGORÍA
 
