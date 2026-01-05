@@ -2919,3 +2919,4 @@ print("  • Auto Stats (5 opciones)")
 
 -- Nota: El módulo completo de Blox Fruits está ofuscado en Module.luau
 -- Este loader simplificado carga solo la UI para compatibilidad con Delta
+
