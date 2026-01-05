@@ -1908,21 +1908,26 @@ local function StartAutoFruitCollect()
             if fruit and fruit:FindFirstChild("Handle") then
                 local distance = (HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
                 
+                -- Crear posición segura (siempre por encima, mínimo Y=50)
+                local targetY = math.max(fruit.Handle.Position.Y + 20, 50)
+                local safePosition = CFrame.new(fruit.Handle.Position.X, targetY, fruit.Handle.Position.Z)
+                
                 if distance > 10 then
-                    -- Usar TweenService para atravesar paredes
-                    TeleportToLocation(fruit.Handle.CFrame)
-                else
-                    -- Posicionarse encima de la fruta
-                    HumanoidRootPart.CFrame = fruit.Handle.CFrame + Vector3.new(0, 3, 0)
-                    wait(0.5)
-                    
-                    -- Store en inventario
-                    local Remote = GetBloxFruitsRemote()
-                    if Remote then
-                        pcall(function()
-                            Remote:InvokeServer("StoreFruit", fruit.Name)
-                        end)
-                    end
+                    -- Usar TweenService para atravesar paredes manteniendo altura
+                    TeleportToLocation(safePosition)
+                    wait(0.3)
+                end
+                
+                -- Descender suavemente hacia la fruta
+                HumanoidRootPart.CFrame = fruit.Handle.CFrame + Vector3.new(0, 5, 0)
+                wait(0.5)
+                
+                -- Store en inventario
+                local Remote = GetBloxFruitsRemote()
+                if Remote then
+                    pcall(function()
+                        Remote:InvokeServer("StoreFruit", fruit.Name)
+                    end)
                 end
             end
         end)
