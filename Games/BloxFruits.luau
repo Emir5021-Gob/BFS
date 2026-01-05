@@ -1,4 +1,4 @@
--- BFS Premium Hub v4.2 - ULTIMATE EDITION
+﻿-- BFS Premium Hub v4.2 - ULTIMATE EDITION
 -- Optimizado para movil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
 -- VERSION: 2bf2a15 - 04/01/2026
@@ -3142,7 +3142,6 @@ local function ShowESPCategory()
             DisableESP()
         end
     end)
-end
 
 -- 9. CATEGORA: SETTINGS
 local function ShowSettingsCategory()
@@ -3168,7 +3167,6 @@ local function ShowSettingsCategory()
     CreateDropdown(ContentArea, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
         Settings.SelectedStat = selected
     end)
-end
 
 -- CREAR BOTONES DE CATEGORAS EN SIDEBAR
 CreateCategoryButton(Sidebar, "", "Farming", ShowFarmingCategory)
