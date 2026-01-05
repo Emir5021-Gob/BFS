@@ -1,7 +1,10 @@
 -- BFS Premium Hub v4.2 - ULTIMATE EDITION
 -- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
--- VERSION: ed636a0 - 04/01/2026
+-- VERSION: 482b41f - 04/01/2026
+
+-- Test inicial ANTES de todo
+print("🚀 BFS: Script cargado en memoria")
 
 -- Función para notificaciones móvil
 local function Notify(title, text, duration)
@@ -14,28 +17,76 @@ local function Notify(title, text, duration)
     end)
 end
 
-Notify("BFS v4.2", "Commit: ed636a0", 5)
-Notify("BFS DEBUG", "Script iniciado", 2)
+print("🚀 BFS: Función Notify creada")
 
--- Protección y verificaciones
-repeat wait() until game:IsLoaded()
-repeat wait() until game.Players
-repeat wait() until game.Players.LocalPlayer
-repeat wait() until game.Players.LocalPlayer.Character
+-- Primera notificación ANTES de wait()
+Notify("BFS v4.2", "CARGANDO...", 5)
+print("🚀 BFS: Primera notificación enviada")
 
+-- Protección y verificaciones (con timeout)
+local timeout = 30
+local startTime = tick()
+
+print("🚀 BFS: Esperando game:IsLoaded()...")
+while not game:IsLoaded() do 
+    wait(0.1)
+    if tick() - startTime > timeout then
+        warn("❌ TIMEOUT: game:IsLoaded()")
+        return
+    end
+end
+print("✅ BFS: game:IsLoaded()")
+
+print("🚀 BFS: Esperando Players...")
+while not game.Players do 
+    wait(0.1)
+    if tick() - startTime > timeout then
+        warn("❌ TIMEOUT: Players")
+        return
+    end
+end
+print("✅ BFS: Players OK")
+
+print("🚀 BFS: Esperando LocalPlayer...")
+while not game.Players.LocalPlayer do 
+    wait(0.1)
+    if tick() - startTime > timeout then
+        warn("❌ TIMEOUT: LocalPlayer")
+        return
+    end
+end
+print("✅ BFS: LocalPlayer OK")
+
+print("🚀 BFS: Esperando Character...")
+while not game.Players.LocalPlayer.Character do 
+    wait(0.1)
+    if tick() - startTime > timeout then
+        warn("❌ TIMEOUT: Character")
+        return
+    end
+end
+print("✅ BFS: Character OK")
+
+Notify("BFS DEBUG", "✅ Verificaciones OK", 3)
+
+Notify("BFS DEBUG", "✅ Verificaciones OK", 3)
+
+print("🚀 BFS: Obteniendo servicios...")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
+print("✅ BFS: Servicios obtenidos")
 
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+print("✅ BFS: Player/Character/Humanoid OK")
 
-Notify("BFS DEBUG", "Servicios cargados", 2)
+Notify("BFS DEBUG", "✅ Servicios cargados", 2)
 
 -- Detectar Sea actual
 local function GetCurrentSea()
