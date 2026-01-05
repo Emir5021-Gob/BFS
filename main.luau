@@ -15,17 +15,30 @@ end)
 -- Configuración
 local REPO = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Games/"
 
--- IDs de juego soportados (incluye BETA)
+-- IDs de juego soportados (incluye BETA y variantes)
 local GAMES = {
+    -- Blox Fruits Main
     [2753915549] = "BloxFruits.luau", -- Sea 1
     [4442272183] = "BloxFruits.luau", -- Sea 2
     [7449423635] = "BloxFruits.luau", -- Sea 3
-    [13498489180] = "BloxFruits.luau", -- Blox Fruits BETA
+    -- Blox Fruits BETA/Test
+    [13498489180] = "BloxFruits.luau", -- BETA
+    [15541073133] = "BloxFruits.luau", -- BETA 2
+    [17078241790] = "BloxFruits.luau", -- Private Server variant
 }
 
 -- Detectar juego
 local placeId = game.PlaceId
 local scriptName = GAMES[placeId]
+
+-- Si no está en la lista pero el nombre del juego contiene "Blox Fruits", usarlo de todos modos
+if not scriptName then
+    local gameName = game:GetService("MarketplaceService"):GetProductInfo(placeId).Name or ""
+    if gameName:lower():find("blox") and gameName:lower():find("fruit") then
+        scriptName = "BloxFruits.luau"
+        print("✅ Detectado como Blox Fruits por nombre:", gameName)
+    end
+end
 
 print("=" .. string.rep("=", 50))
 print("🚀 BFS SCRIPTS v4.2 ULTIMATE")
