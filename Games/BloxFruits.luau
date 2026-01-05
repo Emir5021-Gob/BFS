@@ -2656,11 +2656,11 @@ local function ShowFarmingCategory()
         end
     end)
     
-    CreateDropdown(ContentScroll, "Weapon Type:", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
+    CreateDropdown(ContentArea, "Weapon Type:", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
         Settings.SelectedWeaponType = selected
     end)
     
-    CreateToggle(ContentScroll, "Auto Quest", function(value)
+    CreateToggle(ContentArea, "Auto Quest", function(value)
         Settings.AutoQuest = value
         if value then
             TakeQuest()
@@ -2670,7 +2670,7 @@ local function ShowFarmingCategory()
         end
     end)
     
-    CreateToggle(ContentScroll, "Fast Attack", function(value)
+    CreateToggle(ContentArea, "Fast Attack", function(value)
         Settings.FastAttack = value
         if value then
             StartFastAttack()
@@ -2679,13 +2679,13 @@ local function ShowFarmingCategory()
         end
     end)
     
-    CreateToggle(ContentScroll, "Bring Mob", function(value)
+    CreateToggle(ContentArea, "Bring Mob", function(value)
         Settings.BringMob = value
     end)
     
-    CreateSection(ContentScroll, "⚔️ MASTERY")
+    CreateSection(ContentArea, "⚔️ MASTERY")
     
-    CreateToggle(ContentScroll, "Auto Mastery", function(value)
+    CreateToggle(ContentArea, "Auto Mastery", function(value)
         Settings.AutoMastery = value
         if value then
             StartAutoMastery()
@@ -2754,7 +2754,7 @@ local function ShowMaterialsCategory()
         end
     end)
     
-    CreateToggle(ContentScroll, "Auto Farm Ectoplasm", function(value)
+    CreateToggle(ContentArea, "Auto Farm Ectoplasm", function(value)
         Settings.AutoEctoplasm = value
         if value then
             StartAutoEctoplasm()
@@ -2833,7 +2833,7 @@ local function ShowBossesCategory()
         end
     end)
     
-    CreateToggle(ContentScroll, "Auto Chest", function(value)
+    CreateToggle(ContentArea, "Auto Chest", function(value)
         Settings.AutoChest = value
         if value then
             StartAutoChest()
@@ -2842,7 +2842,7 @@ local function ShowBossesCategory()
         end
     end)
     
-    CreateToggle(ContentScroll, "Auto Mirage Island", function(value)
+    CreateToggle(ContentArea, "Auto Mirage Island", function(value)
         Settings.AutoMirageIsland = value
         if value then
             StartAutoMirageIsland()
@@ -2911,11 +2911,11 @@ end
 
 -- 7. CATEGORÍA: HAKI
 local function ShowHakiCategory()
-    ClearContent(ContentScroll)
+    ClearContent(ContentArea)
     
-    CreateSection(ContentScroll, "🥋 HAKI TRAINING")
+    CreateSection(ContentArea, "🥋 HAKI TRAINING")
     
-    CreateToggle(ContentScroll, "Auto Observation Haki", function(value)
+    CreateToggle(ContentArea, "Auto Observation Haki", function(value)
         Settings.AutoObservationHaki = value
         if value then
             StartAutoObservationHaki()
@@ -2936,11 +2936,11 @@ end
 
 -- 8. CATEGORÍA: ESP
 local function ShowESPCategory()
-    ClearContent(ContentScroll)
+    ClearContent(ContentArea)
     
-    CreateSection(ContentScroll, "👁️ ESP & VISUALS")
+    CreateSection(ContentArea, "👁️ ESP & VISUALS")
     
-    CreateToggle(ContentScroll, "Enable ESP", function(value)
+    CreateToggle(ContentArea, "Enable ESP", function(value)
         Settings.EnableESP = value
         if value then
             EnableESP()
@@ -2952,17 +2952,17 @@ end
 
 -- 9. CATEGORÍA: SETTINGS
 local function ShowSettingsCategory()
-    ClearContent(ContentScroll)
+    ClearContent(ContentArea)
     
-    CreateSection(ContentScroll, "⚙️ GENERAL SETTINGS")
+    CreateSection(ContentArea, "⚙️ GENERAL SETTINGS")
     
-    CreateToggle(ContentScroll, "Safe Mode (60%)", function(value)
+    CreateToggle(ContentArea, "Safe Mode (60%)", function(value)
         Settings.SafeMode = value
     end)
     
-    CreateSection(ContentScroll, "📊 AUTO STATS")
+    CreateSection(ContentArea, "📊 AUTO STATS")
     
-    CreateToggle(ContentScroll, "Enable Auto Stats", function(value)
+    CreateToggle(ContentArea, "Enable Auto Stats", function(value)
         Settings.AutoStats = value
         if value then
             StartAutoStats()
@@ -2971,7 +2971,7 @@ local function ShowSettingsCategory()
         end
     end)
     
-    CreateDropdown(ContentScroll, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
+    CreateDropdown(ContentArea, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
         Settings.SelectedStat = selected
     end)
 end
