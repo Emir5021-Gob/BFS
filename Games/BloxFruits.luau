@@ -2431,6 +2431,9 @@ end)
 
 print("🎨 Creando interfaz de usuario...")
 
+-- Variables globales para UI (necesarias para las funciones Show*Category)
+local GUI, Sidebar, ContentArea
+
 -- Crear UI con protección de errores
 local success, result1, result2, result3 = pcall(CreateUI)
 if not success then
@@ -2439,9 +2442,9 @@ if not success then
     return
 end
 
-local GUI = result1
-local Sidebar = result2
-local ContentArea = result3
+GUI = result1
+Sidebar = result2
+ContentArea = result3
 
 if not GUI or not Sidebar or not ContentArea then
     warn("❌ Error: UI, Sidebar o ContentArea es nil")
@@ -2896,53 +2899,6 @@ print("")
 print("⚠️ TODAS LAS OPCIONES DESACTIVADAS")
 print("   Activa solo las que necesites usar")
 print("========================================")
-print("🔧 Iniciando creación de UI...")
 
--- Crear la UI
-local success, err = pcall(function()
-    print("📦 Llamando a CreateUI()...")
-    local ScreenGui, SidebarScroll, ContentScroll = CreateUI()
-    
-    if not ScreenGui then
-        error("CreateUI() no retornó ScreenGui")
-    end
-    
-    print("✅ CreateUI() exitoso")
-    print("📱 Creando botones de categorías...")
-    
-    -- Crear botones de categorías en el sidebar
-    CreateCategoryButton(SidebarScroll, "🌾", "Farming", ShowFarmingCategory)
-    CreateCategoryButton(SidebarScroll, "💎", "Materials", ShowMaterialsCategory)
-    CreateCategoryButton(SidebarScroll, "🗺️", "Teleports", ShowTeleportsCategory)
-    CreateCategoryButton(SidebarScroll, "👑", "Bosses", ShowBossesCategory)
-    CreateCategoryButton(SidebarScroll, "🍎", "Fruits", ShowFruitsCategory)
-    CreateCategoryButton(SidebarScroll, "⚔️", "Raids", ShowRaidsCategory)
-    CreateCategoryButton(SidebarScroll, "🥋", "Haki", ShowHakiCategory)
-    CreateCategoryButton(SidebarScroll, "👁️", "ESP", ShowESPCategory)
-    CreateCategoryButton(SidebarScroll, "⚙️", "Settings", ShowSettingsCategory)
-    
-    print("✅ Botones creados")
-    print("📄 Mostrando categoría inicial...")
-    
-    -- Mostrar categoría inicial
-    ShowFarmingCategory()
-    
-    print("✅ UI completamente cargada!")
-    
-    -- Insertar en CoreGui o PlayerGui
-    local targetParent = game:GetService("CoreGui")
-    if not targetParent then
-        targetParent = Player:WaitForChild("PlayerGui")
-    end
-    
-    ScreenGui.Parent = targetParent
-    print("✅ UI insertada en:", targetParent.Name)
-end)
-
-if not success then
-    warn("❌ Error al crear UI:", tostring(err))
-    warn("❌ Stack trace completo:")
-    warn(debug.traceback())
-end
-
-print("🎮 BFS Scripts cargado completamente!")
+print("🎮 BFS Scripts v4.2 ULTIMATE cargado completamente!")
+print("🎯 UI activa - Presiona el botón minimize para ocultar")
