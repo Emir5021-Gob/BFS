@@ -128,19 +128,55 @@ local func, compileError = loadstring(code)
 if not func then
     warn(" ERROR DE COMPILACIN:")
     warn(tostring(compileError))
-    -- Mostrar primeras lneas con error
-    local lines = {}
-    for line in code:gmatch("[^\r\n]+") do
-        table.insert(lines, line)
-    end
-    warn("Total de lneas:", #lines)
+    -- Intentar fallback a script minimal
     pcall(function()
         game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = " Error Compilacin",
-            Text = tostring(compileError):sub(1, 50),
-            Duration = 15,
+            Title = " Error Compilacion",
+            Text = "Usando version minimal",
+            Duration = 6,
         })
     end)
+    local minimalUrl = REPO .. "BloxFruits_minimal.lua"
+    local mcode
+    local okDownload, errDownload = pcall(function()
+        mcode = game:HttpGet(minimalUrl, true)
+    end)
+    if not okDownload or not mcode or mcode == "" then
+        warn(" Fallback descarga fallo:", tostring(errDownload))
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = " Error Fallback",
+                Text = "No se pudo descargar minimal",
+                Duration = 8,
+            })
+        end)
+        return
+    end
+    local mfunc, mErr = loadstring(mcode)
+    if not mfunc then
+        warn(" Fallback compilacion fallo:", tostring(mErr))
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = " Error Compilacion",
+                Text = tostring(mErr):sub(1, 50),
+                Duration = 10,
+            })
+        end)
+        return
+    end
+    local okRun, runErr = pcall(mfunc)
+    if not okRun then
+        warn(" Fallback ejecucion fallo:", tostring(runErr))
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = " Error Ejecucion",
+                Text = tostring(runErr):sub(1, 50),
+                Duration = 10,
+            })
+        end)
+        return
+    end
+    -- Fallback ejecutado correctamente
     return
 end
 
