@@ -61,41 +61,46 @@ local function LoadScript(scriptName)
 end
 
 -- Detectar juego actual
-local currentPlaceId = tonumber(game.PlaceId) or game.PlaceId
+local currentPlaceId = game.PlaceId
+local placeIdStr = tostring(currentPlaceId)
 
--- Verificar si es Blox Fruits (cualquier sea)
-local isBloxFruits = false
-local bloxFruitsIds = {2753915549, 4442272183, 7449423635}
-
-for _, id in pairs(bloxFruitsIds) do
-    if currentPlaceId == id then
-        isBloxFruits = true
-        break
-    end
-end
+-- PlaceIds válidos de Blox Fruits
+local VALID_IDS = {
+    [2753915549] = {Name = "Blox Fruits [Sea 1]", Script = "BloxFruits.luau"},
+    [4442272183] = {Name = "Blox Fruits [Sea 2]", Script = "BloxFruits.luau"},
+    [7449423635] = {Name = "Blox Fruits [Sea 3]", Script = "BloxFruits.luau"},
+}
 
 local gameInfo = SUPPORTED_GAMES[currentPlaceId]
 
+-- Si no encuentra directamente, intentar buscar dentro del string
 if not gameInfo then
-    -- Intentar convertir si es string
-    if type(currentPlaceId) == "string" then
-        local convertedId = tonumber(currentPlaceId)
-        if convertedId then
-            gameInfo = SUPPORTED_GAMES[convertedId]
+    for validId, info in pairs(VALID_IDS) do
+        local validIdStr = tostring(validId)
+        if placeIdStr:find(validIdStr) then
+            gameInfo = info
+            break
         end
     end
-    
-    if not gameInfo then
-        -- Notificación visual para el usuario
-        pcall(function()
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "❌ Juego No Soportado";
-                Text = "PlaceId: " .. tostring(currentPlaceId) .. "\nSolo funciona en Blox Fruits";
-                Duration = 10;
-            })
-        end)
-        return
+end
+
+-- Si sigue sin encontrar, intentar con conversión
+if not gameInfo and type(currentPlaceId) == "string" then
+    local convertedId = tonumber(currentPlaceId)
+    if convertedId then
+        gameInfo = SUPPORTED_GAMES[convertedId]
     end
+end
+
+if not gameInfo then
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "❌ Juego No Soportado";
+            Text = "PlaceId: " .. placeIdStr .. "\nSolo funciona en Blox Fruits";
+            Duration = 10;
+        })
+    end)
+    return
 end
 
 -- Notificación de carga
