@@ -64,43 +64,20 @@ end
 local currentPlaceId = game.PlaceId
 local placeIdStr = tostring(currentPlaceId)
 
--- PlaceIds válidos de Blox Fruits
-local VALID_IDS = {
-    [2753915549] = {Name = "Blox Fruits [Sea 1]", Script = "BloxFruits.luau"},
-    [4442272183] = {Name = "Blox Fruits [Sea 2]", Script = "BloxFruits.luau"},
-    [7449423635] = {Name = "Blox Fruits [Sea 3]", Script = "BloxFruits.luau"},
-}
-
 local gameInfo = SUPPORTED_GAMES[currentPlaceId]
 
--- Si no encuentra directamente, intentar buscar dentro del string
+-- Si no encuentra, asumir que es Blox Fruits (el executor puede dar PlaceIds incorrectos)
 if not gameInfo then
-    for validId, info in pairs(VALID_IDS) do
-        local validIdStr = tostring(validId)
-        if placeIdStr:find(validIdStr) then
-            gameInfo = info
-            break
-        end
-    end
-end
-
--- Si sigue sin encontrar, intentar con conversión
-if not gameInfo and type(currentPlaceId) == "string" then
-    local convertedId = tonumber(currentPlaceId)
-    if convertedId then
-        gameInfo = SUPPORTED_GAMES[convertedId]
-    end
-end
-
-if not gameInfo then
+    -- Cargar Blox Fruits por defecto si el PlaceId no es reconocido
+    gameInfo = {Name = "Blox Fruits [Auto-detectado]", Script = "BloxFruits.luau"}
+    
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
-            Title = "❌ Juego No Soportado";
-            Text = "PlaceId: " .. placeIdStr .. "\nSolo funciona en Blox Fruits";
-            Duration = 10;
+            Title = "⚠️ PlaceId No Reconocido";
+            Text = "Intentando cargar Blox Fruits...";
+            Duration = 3;
         })
     end)
-    return
 end
 
 -- Notificación de carga
