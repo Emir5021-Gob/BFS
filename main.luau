@@ -70,26 +70,53 @@ local function LoadScript(scriptName)
 end
 
 -- Detectar juego actual
-local currentPlaceId = game.PlaceId
+local currentPlaceId = tonumber(game.PlaceId) or game.PlaceId
 print("🎮 PlaceId detectado:", currentPlaceId)
+print("🔍 Tipo de dato:", type(currentPlaceId))
+
+-- Verificar si es Blox Fruits (cualquier sea)
+local isBloxFruits = false
+local bloxFruitsIds = {2753915549, 4442272183, 7449423635}
+
+for _, id in pairs(bloxFruitsIds) do
+    if currentPlaceId == id then
+        isBloxFruits = true
+        break
+    end
+end
 
 local gameInfo = SUPPORTED_GAMES[currentPlaceId]
 
 if not gameInfo then
     warn("⚠️ Juego no soportado")
     warn("PlaceId actual:", currentPlaceId)
-    warn("Juegos soportados:")
-    for placeId, info in pairs(SUPPORTED_GAMES) do
-        warn("-", info.Name, "(PlaceId:", placeId .. ")")
+    warn("Tipo:", type(currentPlaceId))
+    
+    -- Intentar convertir si es string
+    if type(currentPlaceId) == "string" then
+        local convertedId = tonumber(currentPlaceId)
+        if convertedId then
+            print("🔄 Intentando con PlaceId convertido:", convertedId)
+            gameInfo = SUPPORTED_GAMES[convertedId]
+        end
     end
     
-    -- Notificación visual para el usuario
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "❌ Juego No Soportado";
-        Text = "PlaceId: " .. currentPlaceId .. "\nSolo funciona en Blox Fruits";
-        Duration = 10;
-    })
-    return
+    if not gameInfo then
+        warn("Juegos soportados:")
+        for placeId, info in pairs(SUPPORTED_GAMES) do
+            warn("-", info.Name, "(PlaceId:", placeId .. ")")
+        end
+        
+        -- Notificación visual para el usuario
+        pcall(function()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "❌ Juego No Soportado";
+                Text = "PlaceId: " .. tostring(currentPlaceId) .. "\nSolo funciona en Blox Fruits";
+                Duration = 10;
+            })
+        end)
+        return
+    end
 end
 
 print("✅ Juego detectado:", gameInfo.Name)
@@ -97,11 +124,13 @@ print("📦 Cargando script del juego...")
 print("⏳ Espera un momento...")
 
 -- Notificación de carga
-game.StarterGui:SetCore("SendNotification", {
-    Title = "🚀 BFS Scripts";
-    Text = "Cargando " .. gameInfo.Name;
-    Duration = 3;
-})
+pcall(function()
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "🚀 BFS Scripts";
+        Text = "Cargando " .. gameInfo.Name;
+        Duration = 3;
+    })
+end)
 
 -- Cargar y ejecutar el script del juego
 local GameScript = LoadScript(gameInfo.Script)
@@ -109,24 +138,30 @@ if GameScript then
     local success, err = pcall(GameScript)
     if not success then
         warn("❌ Error al ejecutar:", err)
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "❌ Error de Ejecución";
-            Text = "Revisa la consola para detalles";
-            Duration = 5;
-        })
+        pcall(function()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "❌ Error de Ejecución";
+                Text = "Revisa la consola para detalles";
+                Duration = 5;
+            })
+        end)
     else
         print("✅ Script cargado exitosamente!")
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "✅ Script Cargado";
-            Text = "BFS Hub v4.2 iniciado correctamente";
-            Duration = 3;
-        })
+        pcall(function()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "✅ Script Cargado";
+                Text = "BFS Hub v4.2 iniciado correctamente";
+                Duration = 3;
+            })
+        end)
     end
 else
     warn("❌ No se pudo cargar el script del juego")
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "❌ Error de Descarga";
-        Text = "No se pudo descargar el script";
-        Duration = 5;
-    })
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "❌ Error de Descarga";
+            Text = "No se pudo descargar el script";
+            Duration = 5;
+        })
+    end)
 end
