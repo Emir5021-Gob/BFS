@@ -42,6 +42,13 @@ local CommF_ = RemotesFolder:WaitForChild("CommF_")
 -- Cargar base de datos de quests
 local QuestsDatabase = loadstring(game:HttpGet("https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Utils/BloxFruits/GameModules/Quests.lua"))()
 
+if not QuestsDatabase or type(QuestsDatabase) ~= "table" then
+    warn("⚠️ Error al cargar QuestsDatabase, usando fallback")
+    QuestsDatabase = {} -- Fallback vacío para evitar crashes
+else
+    print("✅ QuestsDatabase cargado:", #QuestsDatabase, "quest givers")
+end
+
 -- Extender SimulationRadius para renderizar enemigos lejanos
 pcall(function()
     local lp = Player
@@ -2426,20 +2433,27 @@ local function TakeQuest()
         return false 
     end
     
+    if not QuestsDatabase or type(QuestsDatabase) ~= "table" then
+        warn("⚠️ QuestsDatabase no cargado correctamente")
+        return false
+    end
+    
     local playerLevel = GetPlayerLevel()
     local selectedQuestGiver = nil
     local selectedQuestNumber = 1
     local selectedEnemy = nil
+    local highestLevelReq = 0
     
-    -- Buscar en QuestsDatabase la quest apropiada
+    -- Buscar en QuestsDatabase la quest MÁS ALTA apropiada
     for questGiver, quests in pairs(QuestsDatabase) do
         for questNum, questData in ipairs(quests) do
-            if playerLevel >= questData.LevelReq then
+            if playerLevel >= questData.LevelReq and questData.LevelReq > highestLevelReq then
                 -- Obtener el enemigo del Task (primer key)
                 for enemyName, count in pairs(questData.Task) do
                     selectedQuestGiver = questGiver
                     selectedQuestNumber = questNum
                     selectedEnemy = enemyName
+                    highestLevelReq = questData.LevelReq
                     break
                 end
             end
@@ -2493,6 +2507,7 @@ local BroughtMobs = {}
 local function BringMobToPlayer(enemy)
     if not Settings.BringMob or not enemy then return end
     if not enemy:FindFirstChild("HumanoidRootPart") or not enemy:FindFirstChild("Humanoid") then return end
+    if not HumanoidRootPart then return end -- Verificar que el jugador existe
     if BroughtMobs[enemy] then return end -- Ya traído
     
     local enemyRoot = enemy.HumanoidRootPart
