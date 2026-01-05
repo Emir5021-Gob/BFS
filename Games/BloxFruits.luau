@@ -2818,105 +2818,22 @@ local function ShowSettingsCategory()
 end
 
 -- CREAR BOTONES DE CATEGORÍAS EN SIDEBAR
-CreateCategoryButton(Sidebar, "??", "Farming", ShowFarmingCategory)
-CreateCategoryButton(Sidebar, "??", "Materials", ShowMaterialsCategory)
-CreateCategoryButton(Sidebar, "???", "Teleports", ShowTeleportsCategory)
-CreateCategoryButton(Sidebar, "??", "Bosses", ShowBossesCategory)
-CreateCategoryButton(Sidebar, "??", "Fruits", ShowFruitsCategory)
-CreateCategoryButton(Sidebar, "??", "Raids", ShowRaidsCategory)
-CreateCategoryButton(Sidebar, "??", "Haki", ShowHakiCategory)
-CreateCategoryButton(Sidebar, "???", "ESP", ShowESPCategory)
-CreateCategoryButton(Sidebar, "??", "Settings", ShowSettingsCategory)
+CreateCategoryButton(Sidebar, "", "Farming", ShowFarmingCategory)
+CreateCategoryButton(Sidebar, "", "Materials", ShowMaterialsCategory)
+CreateCategoryButton(Sidebar, "", "Teleports", ShowTeleportsCategory)
+CreateCategoryButton(Sidebar, "", "Bosses", ShowBossesCategory)
+CreateCategoryButton(Sidebar, "", "Fruits", ShowFruitsCategory)
+CreateCategoryButton(Sidebar, "", "Raids", ShowRaidsCategory)
+CreateCategoryButton(Sidebar, "", "Haki", ShowHakiCategory)
+CreateCategoryButton(Sidebar, "", "ESP", ShowESPCategory)
+CreateCategoryButton(Sidebar, "", "Settings", ShowSettingsCategory)
 
 -- Mostrar categoría inicial (Farming)
 ShowFarmingCategory()
 
--- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
---[[
-CreateSection(ScrollFrame, "?? FARMING")
-
-CreateToggle(ScrollFrame, "Auto Farm", function(value)
-    Settings.AutoFarm = value
-    if value then
-        StartAutoFarm()
-    else
-        StopAutoFarm()
-    end
-end)
-
-CreateToggle(ScrollFrame, "Auto Quest", function(value)
-    Settings.AutoQuest = value
-    if value then
-        TakeQuest()
-        StartAutoQuest()
-    else
-        StopAutoQuest()
-    end
-end)
--- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
---]]
-
--- Inicialización
-
-
-
-print("?? Sea: " .. (Settings.CurrentSea == 1 and "Old World (1)" or Settings.CurrentSea == 2 and "New World (2)" or "Third Sea (3)"))
-print("?? Nivel: " .. GetPlayerLevel() .. " / 2800")
-print("?? Quest: " .. (QuestData.QuestMob or "Ninguna"))
-
-
-
-
-print("  • Auto Farm + Quest (75+ quests)")
-
-
-
-
-
-print("  • Auto Boss (30+ bosses)")
-
-
-
-
-print("  • Auto Farm Materials (12 tipos)")
-print("  • Auto Farm Bones (Sea 3)")
-
-
-
-
-print("  • Fruit Notifier (alerta)")
-
-
-
-print("  • Teleports (30+ ubicaciones)")
-
-
-
-
-
-
-
-
-print("  • ESP Enemies (rojo)")
-print("  • ESP Fruits (dorado)")
-print("  • ESP Chests (verde)")
-
-
-
-print("  • Auto Raid (14 raids)")
-print("  • Auto Mastery (armas + frutas)")
-print("  • Skills automáticas (Z/X/C/V)")
-
-
-print("  • Auto Stats (5 opciones)")
-
-
-
-
-
-
-
-
--- Nota: El módulo completo de Blox Fruits está ofuscado en Module.luau
--- Este loader simplificado carga solo la UI para compatibilidad con Delta
-
+-- Notificación de carga exitosa
+game.StarterGui:SetCore("SendNotification", {
+    Title = " BFS Hub Cargado";
+    Text = "Sea " .. CurrentSea .. " - Nivel " .. GetPlayerLevel();
+    Duration = 5;
+})
