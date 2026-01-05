@@ -6,8 +6,6 @@
     Repositorio: github.com/Emir5021-Gob/BFS
 ]]
 
-print("🚀 BFS Scripts v4.2 ULTIMATE - Iniciando...")
-
 -- Configuración del repositorio
 local REPO_URL = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/"
 
@@ -38,8 +36,6 @@ local function DownloadScript(url)
     end)
     
     if not success then
-        warn("❌ Error al descargar:", url)
-        warn("Detalles:", result)
         return nil
     end
     
@@ -48,7 +44,6 @@ end
 
 -- Función para cargar y ejecutar código
 local function LoadScript(scriptName)
-    print("📥 Descargando:", scriptName)
     local code = DownloadScript(REPO_URL .. "Games/" .. scriptName)
     
     if not code then
@@ -56,12 +51,8 @@ local function LoadScript(scriptName)
         return
     end
     
-    print("✅ Código descargado")
-    print("⚙️ Ejecutando script...")
-    
     local func, err = loadstring(code)
     if not func then
-        warn("❌ Error de sintaxis:", err)
         error("El script tiene errores de sintaxis")
         return
     end
@@ -71,8 +62,6 @@ end
 
 -- Detectar juego actual
 local currentPlaceId = tonumber(game.PlaceId) or game.PlaceId
-print("🎮 PlaceId detectado:", currentPlaceId)
-print("🔍 Tipo de dato:", type(currentPlaceId))
 
 -- Verificar si es Blox Fruits (cualquier sea)
 local isBloxFruits = false
@@ -88,25 +77,15 @@ end
 local gameInfo = SUPPORTED_GAMES[currentPlaceId]
 
 if not gameInfo then
-    warn("⚠️ Juego no soportado")
-    warn("PlaceId actual:", currentPlaceId)
-    warn("Tipo:", type(currentPlaceId))
-    
     -- Intentar convertir si es string
     if type(currentPlaceId) == "string" then
         local convertedId = tonumber(currentPlaceId)
         if convertedId then
-            print("🔄 Intentando con PlaceId convertido:", convertedId)
             gameInfo = SUPPORTED_GAMES[convertedId]
         end
     end
     
     if not gameInfo then
-        warn("Juegos soportados:")
-        for placeId, info in pairs(SUPPORTED_GAMES) do
-            warn("-", info.Name, "(PlaceId:", placeId .. ")")
-        end
-        
         -- Notificación visual para el usuario
         pcall(function()
             game.StarterGui:SetCore("SendNotification", {
@@ -118,10 +97,6 @@ if not gameInfo then
         return
     end
 end
-
-print("✅ Juego detectado:", gameInfo.Name)
-print("📦 Cargando script del juego...")
-print("⏳ Espera un momento...")
 
 -- Notificación de carga
 pcall(function()
@@ -137,16 +112,14 @@ local GameScript = LoadScript(gameInfo.Script)
 if GameScript then
     local success, err = pcall(GameScript)
     if not success then
-        warn("❌ Error al ejecutar:", err)
         pcall(function()
             game.StarterGui:SetCore("SendNotification", {
                 Title = "❌ Error de Ejecución";
-                Text = "Revisa la consola para detalles";
+                Text = "Error al cargar el script";
                 Duration = 5;
             })
         end)
     else
-        print("✅ Script cargado exitosamente!")
         pcall(function()
             game.StarterGui:SetCore("SendNotification", {
                 Title = "✅ Script Cargado";
@@ -156,7 +129,6 @@ if GameScript then
         end)
     end
 else
-    warn("❌ No se pudo cargar el script del juego")
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "❌ Error de Descarga";
