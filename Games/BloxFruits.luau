@@ -1,267 +1,12 @@
-﻿-- BFS Hub v4.2 - Desde Cero
--- Script completamente nuevo y optimizado
-
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
--- Notificación simple
-local function Notify(title, text)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = title,
-        Text = text,
-        Duration = 3
-    })
-end
-
-Notify("BFS Hub", "Cargando...")
-
--- Crear UI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BFSHub"
-ScreenGui.ResetOnSpawn = false
-
--- Frame principal
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 400, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
-
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 10)
-Corner.Parent = MainFrame
-
--- Header
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 40)
-Header.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-Header.BorderSizePixel = 0
-Header.Parent = MainFrame
-
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 10)
-HeaderCorner.Parent = Header
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -50, 1, 0)
-Title.Position = UDim2.new(0, 10, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.GothamBold
-Title.Text = "BFS Hub v4.2"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 16
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
-
--- Botón cerrar
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -35, 0, 5)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-CloseBtn.BorderSizePixel = 0
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.Text = "X"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 14
-CloseBtn.Parent = Header
-
-local CloseBtnCorner = Instance.new("UICorner")
-CloseBtnCorner.CornerRadius = UDim.new(0, 8)
-CloseBtnCorner.Parent = CloseBtn
-
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- ScrollingFrame para contenido
-local ScrollFrame = Instance.new("ScrollingFrame")
-ScrollFrame.Size = UDim2.new(1, -20, 1, -60)
-ScrollFrame.Position = UDim2.new(0, 10, 0, 50)
-ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.BorderSizePixel = 0
-ScrollFrame.ScrollBarThickness = 4
-ScrollFrame.Parent = MainFrame
-
-local Layout = Instance.new("UIListLayout")
-Layout.Padding = UDim.new(0, 10)
-Layout.Parent = ScrollFrame
-
--- Función para crear sección
-local function CreateSection(text)
-    local Section = Instance.new("TextLabel")
-    Section.Size = UDim2.new(1, 0, 0, 30)
-    Section.BackgroundTransparency = 1
-    Section.Font = Enum.Font.GothamBold
-    Section.Text = text
-    Section.TextColor3 = Color3.fromRGB(100, 150, 255)
-    Section.TextSize = 14
-    Section.TextXAlignment = Enum.TextXAlignment.Left
-    Section.Parent = ScrollFrame
-end
-
--- Función para crear toggle
-local function CreateToggle(text, callback)
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, 0, 0, 35)
-    Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-    Frame.BorderSizePixel = 0
-    Frame.Parent = ScrollFrame
-    
-    local FrameCorner = Instance.new("UICorner")
-    FrameCorner.CornerRadius = UDim.new(0, 6)
-    FrameCorner.Parent = Frame
-    
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -60, 1, 0)
-    Label.Position = UDim2.new(0, 10, 0, 0)
-    Label.BackgroundTransparency = 1
-    Label.Font = Enum.Font.Gotham
-    Label.Text = text
-    Label.TextColor3 = Color3.fromRGB(200, 200, 200)
-    Label.TextSize = 12
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Parent = Frame
-    
-    local Toggle = Instance.new("TextButton")
-    Toggle.Size = UDim2.new(0, 45, 0, 22)
-    Toggle.Position = UDim2.new(1, -50, 0.5, -11)
-    Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-    Toggle.BorderSizePixel = 0
-    Toggle.Text = ""
-    Toggle.Parent = Frame
-    
-    local ToggleCorner = Instance.new("UICorner")
-    ToggleCorner.CornerRadius = UDim.new(1, 0)
-    ToggleCorner.Parent = Toggle
-    
-    local Indicator = Instance.new("Frame")
-    Indicator.Size = UDim2.new(0, 18, 0, 18)
-    Indicator.Position = UDim2.new(0, 2, 0.5, -9)
-    Indicator.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-    Indicator.BorderSizePixel = 0
-    Indicator.Parent = Toggle
-    
-    local IndCorner = Instance.new("UICorner")
-    IndCorner.CornerRadius = UDim.new(1, 0)
-    IndCorner.Parent = Indicator
-    
-    local enabled = false
-    
-    Toggle.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            Indicator.Position = UDim2.new(1, -20, 0.5, -9)
-            Indicator.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-            Toggle.BackgroundColor3 = Color3.fromRGB(70, 140, 70)
-        else
-            Indicator.Position = UDim2.new(0, 2, 0.5, -9)
-            Indicator.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-            Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-        end
-        callback(enabled)
-    end)
-end
-
--- Función para crear botón
-local function CreateButton(text, callback)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, 0, 0, 35)
-    Button.BackgroundColor3 = Color3.fromRGB(60, 120, 220)
-    Button.BorderSizePixel = 0
-    Button.Font = Enum.Font.GothamBold
-    Button.Text = text
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextSize = 12
-    Button.Parent = ScrollFrame
-    
-    local BtnCorner = Instance.new("UICorner")
-    BtnCorner.CornerRadius = UDim.new(0, 6)
-    BtnCorner.Parent = Button
-    
-    Button.MouseButton1Click:Connect(function()
-        callback()
-    end)
-end
-
--- CONTENIDO DEL HUB
-CreateSection("⚔️ AUTO FARM")
-CreateToggle("Auto Farm Level", function(enabled)
-    Notify("Auto Farm", enabled and "Activado" or "Desactivado")
-end)
-
-CreateSection("📦 MATERIALES")
-CreateToggle("Auto Farm Material", function(enabled)
-    Notify("Material Farm", enabled and "Activado" or "Desactivado")
-end)
-
-CreateSection("🗺️ TELEPORTS")
-CreateButton("Teleport a Spawn", function()
-    Notify("Teleport", "En desarrollo")
-end)
-
-CreateSection("👹 BOSSES")
-CreateToggle("Auto Boss", function(enabled)
-    Notify("Auto Boss", enabled and "Activado" or "Desactivado")
-end)
-
-CreateSection("🍎 FRUTAS")
-CreateToggle("Auto Collect Fruits", function(enabled)
-    Notify("Fruit Collect", enabled and "Activado" or "Desactivado")
-end)
-
-CreateSection("⚙️ CONFIGURACIÓN")
-CreateToggle("Safe Mode", function(enabled)
-    Notify("Safe Mode", enabled and "Activado" or "Desactivado")
-end)
-
--- Ajustar canvas
-Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
-end)
-
--- Insertar en PlayerGui
-ScreenGui.Parent = Player:WaitForChild("PlayerGui")
-
-Notify("BFS Hub", "Cargado exitosamente!")
-print("BFS Hub v4.2 cargado correctamente")
--- Optimizado para movil con funcionalidades completas
+﻿-- BFS Premium Hub v4.2 - ULTIMATE EDITION
+-- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
--- VERSION: 2bf2a15 - 04/01/2026
 
--- Funcion para notificaciones movil
-local function Notify(title, text, duration)
-    pcall(function()
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = title,
-            Text = text,
-            Duration = duration or 3,
-        })
-    end)
-end
-
-Notify("BFS v4.2", "Cargando...", 5)
-
-print("========================================")
-print("[BFS] Scripts v4.2 INICIANDO...")
-print("========================================")
-
--- Proteccion y verificaciones
-print("[BFS] Esperando carga del juego...")
+-- Protección y verificaciones
 repeat wait() until game:IsLoaded()
-print(" Juego cargado")
-
 repeat wait() until game.Players
-print(" Players service listo")
-
 repeat wait() until game.Players.LocalPlayer
-print(" LocalPlayer detectado")
-
 repeat wait() until game.Players.LocalPlayer.Character
-print(" Character spawneado")
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -270,96 +15,29 @@ local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 
-print(" Servicios obtenidos")
-
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
-print(" Referencias de jugador establecidas")
-
--- Bloque wrapper para balancear estructura
-do
-
--- Remote correcto de Blox Fruits (opcional, algunas funciones lo necesitan)
-print(" Buscando CommF_ remote...")
-local RemotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
-if not RemotesFolder then
-    RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 5)
-end
-
-local CommF_ = nil
-if RemotesFolder then
-    CommF_ = RemotesFolder:FindFirstChild("CommF_")
-    if not CommF_ then
-        CommF_ = RemotesFolder:WaitForChild("CommF_", 5)
-    end
-end
-
-if CommF_ then
-    print(" CommF_ remote obtenido")
-    Notify("INFO", "CommF_ encontrado", 2)
-else
-    warn(" CommF_ no encontrado - algunas funciones limitadas")
-    Notify("WARNING", "CommF_ no encontrado", 3)
-end
-
--- Cargar base de datos de quests (con proteccin)
-print(" Cargando QuestsDatabase...")
-local QuestsDatabase = {}
-pcall(function()
-    local questCode = game:HttpGet("https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Utils/BloxFruits/GameModules/Quests.lua")
-    if questCode and questCode ~= "" then
-        local loadedDB = loadstring(questCode)()
-        if loadedDB and type(loadedDB) == "table" then
-            QuestsDatabase = loadedDB
-        end
-    end
-end)
-
-local questCount = 0
-for _ in pairs(QuestsDatabase) do questCount = questCount + 1 end
-if questCount > 0 then
-    print(" QuestsDatabase cargado:", questCount, "quest givers")
-    Notify("SUCCESS", "QuestsDatabase: " .. questCount .. " givers", 3)
-else
-    warn(" QuestsDatabase vaco o no cargado")
-    Notify("WARNING", "QuestsDatabase vaco", 3)
-end
-
--- Extender SimulationRadius para renderizar enemigos lejanos
-print(" Extendiendo SimulationRadius...")
-pcall(function()
-    local lp = Player
-    local sethidden = sethiddenproperty or set_hidden_property or set_hidden_prop
-    if sethidden then
-        sethidden(lp, "SimulationRadius", 9e9)
-        sethidden(lp, "MaxSimulationRadius", 9e9)
-        print(" SimulationRadius extendido")
-    else
-        print(" sethiddenproperty no disponible")
-    end
-end)
-
-Notify("BFS DEBUG", "Servicios cargados", 2)
-print("========================================")
+print("✅ BFS Hub v4.2 - Servicios cargados")
+print("✅ Personaje detectado:", Player.Name)
 
 -- Detectar Sea actual
 local function GetCurrentSea()
     local placeId = game.PlaceId
-    print(" Detectando Sea... PlaceId:", placeId)
+    print("🌊 Detectando Sea... PlaceId:", placeId)
     if placeId == 2753915549 then
-        print(" Sea 1 - Old World")
+        print("✅ Sea 1 - Old World")
         return 1 -- Old World (Sea 1)
     elseif placeId == 4442272183 then
-        print(" Sea 2 - New World")
+        print("✅ Sea 2 - New World")
         return 2 -- New World (Sea 2)
     elseif placeId == 7449423635 then
-        print(" Sea 3 - Third Sea")
+        print("✅ Sea 3 - Third Sea")
         return 3 -- Third Sea (Sea 3)
     end
-    warn(" Sea no detectado, usando Sea 1 por defecto")
+    warn("⚠️ Sea no detectado, usando Sea 1 por defecto")
     return 1
 end
 
@@ -405,16 +83,13 @@ local Settings = {
 -- Notificaciones
 local Notifications = {}
 
--- Quest Data mejorado
 local QuestData = {
-    CurrentQuestGiver = nil,
-    CurrentQuestNumber = 1,
+    CurrentQuest = nil,
     QuestMob = nil,
-    QuestLevel = 1,
-    LastQuestCheck = 0
+    QuestLevel = 1
 }
 
---[[ SISTEMA DE QUESTS ELIMINADO - Ahora usa QuestsDatabase.lua
+-- Lista de quests COMPLETA por nivel y sea
 local QuestList = {
     -- SEA 1 (Old World) - Nivel 1-700
     [1] = {
@@ -519,7 +194,6 @@ local QuestList = {
         {Level = 2800, QuestGiver = "FinalQuest", Enemy = "Elite Warrior", Location = CFrame.new(-5000, 314, -3000)},
     }
 }
---]]
 
 -- Lista de Bosses por Sea
 local BossList = {
@@ -698,14 +372,14 @@ local function GetBloxFruitsRemote()
     if success and result then
         return result
     else
-        warn(" No se pudo obtener CommF_ remote")
+        warn("⚠️ No se pudo obtener CommF_ remote")
         return nil
     end
 end
 
-print(" Sistema de remotes configurado")
+print("🔧 Sistema de remotes configurado")
 
--- Funcin para crear UI con sidebar (360x420)
+-- Función para crear UI con sidebar (360x420)
 local function CreateUI()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "BFSHub"
@@ -715,8 +389,8 @@ local function CreateUI()
     -- Main Frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 340, 0, 360)
-    MainFrame.Position = UDim2.new(0.5, -170, 0.5, -180)
+    MainFrame.Size = UDim2.new(0, 420, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -210, 0.5, -225)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
@@ -730,7 +404,7 @@ local function CreateUI()
     -- Header
     local Header = Instance.new("Frame")
     Header.Name = "Header"
-    Header.Size = UDim2.new(1, 0, 0, 40)
+    Header.Size = UDim2.new(1, 0, 0, 50)
     Header.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     Header.BorderSizePixel = 0
     Header.Parent = MainFrame
@@ -748,32 +422,32 @@ local function CreateUI()
     
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
-    Title.Size = UDim2.new(1, -80, 1, 0)
-    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.Position = UDim2.new(0, 15, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Font = Enum.Font.GothamBold
-    Title.Text = " BFS Hub v4.2"
+    Title.Text = "🎮 BFS Hub v4.2"
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 14
+    Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Header
     
     local SubTitle = Instance.new("TextLabel")
     SubTitle.Name = "SubTitle"
-    SubTitle.Size = UDim2.new(1, -80, 0, 12)
-    SubTitle.Position = UDim2.new(0, 10, 0, 22)
+    SubTitle.Size = UDim2.new(1, -100, 0, 15)
+    SubTitle.Position = UDim2.new(0, 15, 0, 28)
     SubTitle.BackgroundTransparency = 1
     SubTitle.Font = Enum.Font.Gotham
     SubTitle.Text = "Premium Edition"
     SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
-    SubTitle.TextSize = 9
+    SubTitle.TextSize = 11
     SubTitle.TextXAlignment = Enum.TextXAlignment.Left
     SubTitle.Parent = Header
     
     local MinimizeBtn = Instance.new("TextButton")
     MinimizeBtn.Name = "MinimizeBtn"
-    MinimizeBtn.Size = UDim2.new(0, 28, 0, 28)
-    MinimizeBtn.Position = UDim2.new(1, -33, 0, 6)
+    MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
+    MinimizeBtn.Position = UDim2.new(1, -43, 0, 7)
     MinimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     MinimizeBtn.BorderSizePixel = 0
     MinimizeBtn.Font = Enum.Font.GothamBold
@@ -789,8 +463,8 @@ local function CreateUI()
     -- Sidebar
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 95, 1, -48)
-    Sidebar.Position = UDim2.new(0, 8, 0, 45)
+    Sidebar.Size = UDim2.new(0, 120, 1, -60)
+    Sidebar.Position = UDim2.new(0, 10, 0, 55)
     Sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = MainFrame
@@ -822,8 +496,8 @@ local function CreateUI()
     -- Content Area
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
-    ContentArea.Size = UDim2.new(0, 230, 1, -48)
-    ContentArea.Position = UDim2.new(0, 108, 0, 45)
+    ContentArea.Size = UDim2.new(0, 275, 1, -60)
+    ContentArea.Position = UDim2.new(0, 135, 0, 55)
     ContentArea.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     ContentArea.BorderSizePixel = 0
     ContentArea.Parent = MainFrame
@@ -852,39 +526,38 @@ local function CreateUI()
         ContentScroll.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 10)
     end)
     
-    -- Minimizar funcin
+    -- Minimizar función
     local Minimized = false
     MinimizeBtn.MouseButton1Click:Connect(function()
         Minimized = not Minimized
         if Minimized then
-            MainFrame:TweenSize(UDim2.new(0, 340, 0, 40), "Out", "Quad", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 420, 0, 50), "Out", "Quad", 0.3, true)
             MinimizeBtn.Text = "+"
             Sidebar.Visible = false
             ContentArea.Visible = false
         else
-            MainFrame:TweenSize(UDim2.new(0, 340, 0, 360), "Out", "Quad", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 420, 0, 450), "Out", "Quad", 0.3, true)
             MinimizeBtn.Text = "-"
             Sidebar.Visible = true
             ContentArea.Visible = true
         end
     end)
     
-    -- NO insertar aqu, se insertar despus
-    -- ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+    ScreenGui.Parent = Player:WaitForChild("PlayerGui")
     return ScreenGui, SidebarScroll, ContentScroll
 end
 
--- Funcin para crear botones de categora en sidebar
+-- Función para crear botones de categoría en sidebar
 local function CreateCategoryButton(parent, icon, text, callback)
     local CategoryBtn = Instance.new("TextButton")
     CategoryBtn.Name = text
-    CategoryBtn.Size = UDim2.new(1, 0, 0, 34)
+    CategoryBtn.Size = UDim2.new(1, 0, 0, 42)
     CategoryBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     CategoryBtn.BorderSizePixel = 0
     CategoryBtn.Font = Enum.Font.GothamBold
     CategoryBtn.Text = icon .. " " .. text
     CategoryBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-    CategoryBtn.TextSize = 10
+    CategoryBtn.TextSize = 12
     CategoryBtn.TextXAlignment = Enum.TextXAlignment.Left
     CategoryBtn.Parent = parent
     
@@ -905,7 +578,7 @@ local function CreateCategoryButton(parent, icon, text, callback)
             end
         end
         
-        -- Activar este botn
+        -- Activar este botón
         CategoryBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 220)
         CategoryBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         
@@ -915,7 +588,7 @@ local function CreateCategoryButton(parent, icon, text, callback)
     return CategoryBtn
 end
 
--- Funcin para limpiar el rea de contenido
+-- Función para limpiar el área de contenido
 local function ClearContent(parent)
     for _, child in pairs(parent:GetChildren()) do
         if not child:IsA("UIListLayout") then
@@ -924,10 +597,10 @@ local function ClearContent(parent)
     end
 end
 
--- Funcin para crear Toggle
+-- Función para crear Toggle
 local function CreateToggle(parent, text, callback)
     local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 28)
+    ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
     ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     ToggleFrame.BorderSizePixel = 0
     ToggleFrame.Parent = parent
@@ -997,25 +670,25 @@ local function CreateToggle(parent, text, callback)
     return ToggleFrame
 end
 
--- Funcin para crear Section
+-- Función para crear Section
 local function CreateSection(parent, text)
     local Section = Instance.new("TextLabel")
-    Section.Size = UDim2.new(1, 0, 0, 20)
+    Section.Size = UDim2.new(1, 0, 0, 25)
     Section.BackgroundTransparency = 1
     Section.Font = Enum.Font.GothamBold
     Section.Text = text
     Section.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Section.TextSize = 11
+    Section.TextSize = 14
     Section.TextXAlignment = Enum.TextXAlignment.Left
     Section.Parent = parent
     
     return Section
 end
 
--- Funcin para crear Dropdown (solo seleccin, no accin)
+-- Función para crear Dropdown (solo selección, no acción)
 local function CreateDropdown(parent, text, options, callback)
     local DropdownFrame = Instance.new("Frame")
-    DropdownFrame.Size = UDim2.new(1, 0, 0, 28)
+    DropdownFrame.Size = UDim2.new(1, 0, 0, 35)
     DropdownFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     DropdownFrame.BorderSizePixel = 0
     DropdownFrame.Parent = parent
@@ -1063,10 +736,10 @@ local function CreateDropdown(parent, text, options, callback)
     return DropdownFrame
 end
 
--- Funcin para crear un botn de accin
+-- Función para crear un botón de acción
 local function CreateButton(parent, text, callback)
     local ButtonFrame = Instance.new("Frame")
-    ButtonFrame.Size = UDim2.new(1, 0, 0, 28)
+    ButtonFrame.Size = UDim2.new(1, 0, 0, 35)
     ButtonFrame.BackgroundTransparency = 1
     ButtonFrame.BorderSizePixel = 0
     ButtonFrame.Parent = parent
@@ -1086,7 +759,7 @@ local function CreateButton(parent, text, callback)
     BtnCorner.Parent = Button
     
     Button.MouseButton1Click:Connect(function()
-        -- Animacin de clic
+        -- Animación de clic
         TweenService:Create(Button, TweenInfo.new(0.1), {
             BackgroundColor3 = Color3.fromRGB(80, 150, 255)
         }):Play()
@@ -1122,24 +795,11 @@ end
 
 -- Sistema de Fast Attack optimizado
 local FastAttackConnection
--- Fast Attack con RegisterAttack y RegisterHit remotes
-local RegisterAttack, RegisterHit
-pcall(function()
-    RegisterAttack = RemotesFolder:WaitForChild("RegisterAttack", 2)
-    RegisterHit = RemotesFolder:WaitForChild("RegisterHit", 2)
-end)
-
-local LastHitTime = 0
-local HitCooldown = 0.1
-
 local function StartFastAttack()
     if FastAttackConnection then return end
     
     FastAttackConnection = RunService.Heartbeat:Connect(function()
         if not Settings.FastAttack then return end
-        
-        local currentTime = tick()
-        if currentTime - LastHitTime < HitCooldown then return end
         
         pcall(function()
             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -1152,31 +812,10 @@ local function StartFastAttack()
                 ActiveController.increment = 3
                 ActiveController.blocking = false
                 
-                -- Usar RegisterAttack si est disponible
-                if RegisterAttack then
-                    RegisterAttack:FireServer()
-                end
-                
-                -- Activar ataque con getBladeHits
+                -- Activar ataque
                 if ActiveController.blade then
                     ActiveController.blade:Hit()
-                    
-                    -- Enviar hits al servidor via RegisterHit
-                    if RegisterHit then
-                        local bladehit = require(ReplicatedStorage.CombatFramework.RigLib).getBladeHits(
-                            Character,
-                            {HumanoidRootPart},
-                            60
-                        )
-                        if bladehit then
-                            for _, v in pairs(bladehit) do
-                                RegisterHit:FireServer(v)
-                            end
-                        end
-                    end
                 end
-                
-                LastHitTime = currentTime
             end
         end)
     end)
@@ -1199,29 +838,13 @@ local function GetCurrentWeapon()
     return nil
 end
 
--- Equipar arma especfica por nombre
--- Equipar arma especfica por nombre (usa CommF_ para verificar)
+-- Equipar arma específica por nombre
 local function EquipWeapon(weaponName)
-    -- Intentar equipar desde Backpack
     local tool = Player.Backpack:FindFirstChild(weaponName)
     if tool and tool:IsA("Tool") then
-        pcall(function()
-            Humanoid:EquipTool(tool)
-        end)
+        Humanoid:EquipTool(tool)
         return true
     end
-    
-    -- Si no est en Backpack, verificar si ya est equipada
-    local equipped = Character:FindFirstChild(weaponName)
-    if equipped and equipped:IsA("Tool") then
-        return true
-    end
-    
-    -- Solicitar arma via CommF_ si no existe
-    pcall(function()
-        CommF_:InvokeServer("LoadItem", weaponName)
-    end)
-    
     return false
 end
 
@@ -1238,17 +861,15 @@ local function UseFruitSkills()
     pcall(function()
         local weapon = GetCurrentWeapon()
         if weapon and weapon:FindFirstChild("RemoteFunctionShoot") then
-            -- Usar habilidades Z, X, C asncronamente
-            spawn(function()
-                local skills = {"Z", "X", "C"}
-                
-                for _, key in pairs(skills) do
-                    VirtualInputManager:SendKeyEvent(true, key, false, game)
-                    task.wait(0.05)
-                    VirtualInputManager:SendKeyEvent(false, key, false, game)
-                    task.wait(0.1)
-                end
-            end)
+            -- Usar habilidades Z, X, C
+            local skills = {"Z", "X", "C"}
+            
+            for _, key in pairs(skills) do
+                VirtualInputManager:SendKeyEvent(true, key, false, game)
+                wait(0.05)
+                VirtualInputManager:SendKeyEvent(false, key, false, game)
+                wait(0.1)
+            end
         end
     end)
 end
@@ -1281,7 +902,7 @@ local function GetWeaponType(tool)
     return "Melee"
 end
 
--- Equipar arma segn tipo seleccionado (Melee, Sword, Gun, Fruit)
+-- Equipar arma según tipo seleccionado (Melee, Sword, Gun, Fruit)
 local function EquipWeaponByType(weaponType)
     -- Si ya tiene un arma del tipo correcto, no hacer nada
     local currentWeapon = GetCurrentWeapon()
@@ -1300,7 +921,7 @@ local function EquipWeaponByType(weaponType)
         end
     end
     
-    -- Si es Melee y no hay arma, usar Combat (puos)
+    -- Si es Melee y no hay arma, usar Combat (puños)
     if weaponType == "Melee" then
         -- Desequipar cualquier arma para usar Combat
         local equipped = GetCurrentWeapon()
@@ -1315,27 +936,15 @@ local function EquipWeaponByType(weaponType)
     return false
 end
 
--- Obtener cofre ms cercano
+-- Obtener cofre más cercano
 local function GetNearestChest()
     local nearestChest = nil
-    local shortestDistance = 5000  -- Radio ampliado
+    local shortestDistance = 1000
     
-    -- Buscar en Workspace
-    for _, v in pairs(game.Workspace:GetChildren()) do
-        if (v.Name:find("Chest") or v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3") and v:FindFirstChild("Root") then
-            local distance = (HumanoidRootPart.Position - v.Root.Position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                nearestChest = v
-            end
-        end
-    end
-    
-    -- Buscar tambin en _WorldOrigin si existe
     pcall(function()
-        if game.Workspace:FindFirstChild("_WorldOrigin") then
-            for _, v in pairs(game.Workspace._WorldOrigin:GetChildren()) do
-                if (v.Name:find("Chest") or v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3") and v:FindFirstChild("Root") then
+        for _, v in pairs(game.Workspace:GetChildren()) do
+            if v:IsA("Model") and (v.Name:find("Chest") or v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3") and v:FindFirstChild("Root") then
+                if v.Parent then -- Verificar que el cofre aún existe
                     local distance = (HumanoidRootPart.Position - v.Root.Position).Magnitude
                     if distance < shortestDistance then
                         shortestDistance = distance
@@ -1349,7 +958,7 @@ local function GetNearestChest()
     return nearestChest
 end
 
--- Detectar evento martimo
+-- Detectar evento marítimo
 local function CheckSeaEvent()
     local seaEvent = nil
     
@@ -1384,11 +993,9 @@ local function CheckSeaEvent()
     return seaEvent
 end
 
--- Buscar boss especfico
+-- Buscar boss específico
 local function FindBoss(bossName)
     if not bossName or bossName == "" then return nil end
-    
-    local foundBoss = nil
     
     -- Buscar en Workspace.Enemies
     pcall(function()
@@ -1396,20 +1003,27 @@ local function FindBoss(bossName)
             for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                 if v.Name == bossName and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
                     if v.Humanoid.Health > 0 then
-                        foundBoss = v
+                        return v
                     end
                 end
             end
         end
     end)
     
-    return foundBoss
+    -- Buscar en ReplicatedStorage (bosses no spawneados)
+    pcall(function()
+        for _, v in pairs(ReplicatedStorage:GetChildren()) do
+            if v.Name == bossName then
+                return nil -- Boss existe pero no está spawneado
+            end
+        end
+    end)
+    
+    return nil
 end
 
--- Auto Chest (mejorado con farming de enemigos)
+-- Auto Chest
 local ChestConnection
-local LastChestSearch = 0
-local NoChestTime = 0
 local function StartAutoChest()
     if ChestConnection then return end
     
@@ -1417,7 +1031,7 @@ local function StartAutoChest()
         if not Settings.AutoChest then return end
         
         pcall(function()
-            -- Actualizar referencias si es necesario
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
@@ -1425,57 +1039,35 @@ local function StartAutoChest()
             end
             
             local chest = GetNearestChest()
-            local currentTime = tick()
             
-            if chest and chest:FindFirstChild("Root") then
-                NoChestTime = 0  -- Reset contador de no cofres
+            if chest and chest:FindFirstChild("Root") and chest.Parent then
                 local distance = (HumanoidRootPart.Position - chest.Root.Position).Magnitude
                 
-                if distance > 8 then
-                    -- Mover hacia cofre
-                    TeleportToLocation(CFrame.new(chest.Root.Position) + Vector3.new(0, 3, 0))
-                else
-                    -- Cerca del cofre: intentar abrir
-                    TeleportToLocation(CFrame.new(chest.Root.Position) + Vector3.new(0, 1, 0))
+                if distance > 5 then
+                    -- Tween suave hacia el cofre
+                    local tweenInfo = TweenInfo.new(distance / 150, Enum.EasingStyle.Linear)
+                    local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {
+                        CFrame = chest.Root.CFrame * CFrame.new(0, 3, 0)
+                    })
+                    tween:Play()
+                elseif distance <= 5 then
+                    -- Posicionar encima del cofre para abrir
+                    HumanoidRootPart.CFrame = chest.Root.CFrame * CFrame.new(0, 3, 0)
+                    wait(0.2)
                     
-                    -- Activacin mltiple para asegurar apertura
+                    -- Intentar abrir el cofre
                     if chest:FindFirstChild("Prompt") then
-                        for i = 1, 3 do
-                            fireproximityprompt(chest.Prompt)
-                        end
+                        pcall(function()
+                            fireproximityprompt(chest.Prompt, 0)
+                        end)
                     end
-                end
-                LastChestSearch = currentTime
-            else
-                -- No hay cofres cerca: farmear enemigos mientras esperamos respawn
-                if currentTime - LastChestSearch > 5 then
-                    NoChestTime = NoChestTime + 1
                     
-                    -- Si no hay cofres por mucho tiempo, farmear enemigos
-                    if NoChestTime > 100 then  -- ~1.5 segundos sin cofres
-                        local enemy = GetNearestEnemy()
-                        
-                        if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                            local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
-                            
-                            -- Equipar arma
-                            EquipWeaponByType(Settings.SelectedWeaponType)
-                            
-                            if distance > 150 then
-                                TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                            elseif distance > Settings.AttackDistance + 2 then
-                                TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                            else
-                                TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
-                                
-                                -- Atacar
-                                local weapon = GetCurrentWeapon()
-                                if weapon then
-                                    weapon:Activate()
-                                end
-                            end
+                    -- También intentar con Touch (método alternativo)
+                    pcall(function()
+                        if chest.Root:FindFirstChild("TouchInterest") then
+                            HumanoidRootPart.CFrame = chest.Root.CFrame
                         end
-                    end
+                    end)
                 end
             end
         end)
@@ -1514,11 +1106,12 @@ local function StartAutoSeaEvent()
                 end
                 
                 if distance > Settings.AttackDistance + 2 then
-                    -- Volar hacia evento con TeleportToLocation
-                    TeleportToLocation(seaEvent.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                    -- Volar hacia evento
+                    local direction = (seaEvent.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
                     -- Atacar
-                    TeleportToLocation(seaEvent.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    HumanoidRootPart.CFrame = seaEvent.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
                     local weapon = GetCurrentWeapon()
                     if weapon then
@@ -1546,7 +1139,7 @@ local function StartAutoBoss()
         if not Settings.AutoBoss or Settings.SelectedBoss == "" then return end
         
         pcall(function()
-            -- Actualizar referencias de personaje si muri
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
@@ -1566,17 +1159,15 @@ local function StartAutoBoss()
                 -- Equipar arma del tipo seleccionado
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
-                if distance > 150 then
-                    -- Distancia larga: usar teleport
-                    TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                elseif distance > Settings.AttackDistance + 2 then
-                    -- Distancia media: volar con TeleportToLocation
-                    TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                if distance > Settings.AttackDistance + 2 then
+                    -- Volar hacia boss
+                    local direction = (boss.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
                     -- Posicionar y atacar
-                    TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
-                    -- Activar Fast Attack si est habilitado
+                    -- Activar Fast Attack si está habilitado
                     if Settings.FastAttack then
                         pcall(function()
                             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -1621,7 +1212,7 @@ local function StopAutoBoss()
     end
 end
 
--- Auto Mastery (Farm con arma especfica para maestra)
+-- Auto Mastery (Farm con arma específica para maestría)
 local MasteryConnection
 local function StartAutoMastery()
     if MasteryConnection then return end
@@ -1633,7 +1224,7 @@ local function StartAutoMastery()
             local enemy = GetNearestEnemy()
             
             if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                -- Equipar arma especfica
+                -- Equipar arma específica
                 local currentWeapon = GetCurrentWeapon()
                 if not currentWeapon or currentWeapon.Name ~= Settings.SelectedWeapon then
                     EquipWeapon(Settings.SelectedWeapon)
@@ -1641,12 +1232,11 @@ local function StartAutoMastery()
                 
                 local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                 
-                if distance > 150 then
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                elseif distance > Settings.AttackDistance + 2 then
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
                     local weapon = GetCurrentWeapon()
                     if weapon then
@@ -1699,8 +1289,9 @@ local function StartAutoMirageIsland()
                 local distance = (HumanoidRootPart.Position - mirageCenter.Position).Magnitude
                 
                 if distance > 100 then
-                    -- Volar hacia Mirage Island con TeleportToLocation
-                    TeleportToLocation(mirageCenter)
+                    -- Volar hacia Mirage Island
+                    local direction = (mirageCenter.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
                 else
                     -- Buscar NPCs o cofres en Mirage
                     for _, npc in pairs(mirageIsland:GetDescendants()) do
@@ -1717,7 +1308,7 @@ local function StartAutoMirageIsland()
                                     end
                                 end
                                 
-                                TeleportToLocation(npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                                HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                                 local weapon = GetCurrentWeapon()
                                 if weapon then
                                     weapon:Activate()
@@ -1749,14 +1340,14 @@ local function StartAutoRaid()
         if not Settings.AutoRaid then return end
         
         pcall(function()
-            -- Actualizar referencias de personaje si muri
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
                 HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
             end
             
-            -- Verificar si est en una raid activa
+            -- Verificar si está en una raid activa
             local raidUI = Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("RaidsUI")
             local inRaid = raidUI and raidUI.Visible
             
@@ -1784,18 +1375,18 @@ local function StartAutoRaid()
                     EquipWeaponByType(Settings.SelectedWeaponType)
                     
                     if distance > Settings.AttackDistance + 2 then
-                        -- Volar hacia enemigo con TeleportToLocation
-                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                        local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                        HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                     else
                         -- Posicionar para atacar
-                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                        HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                         
-                        -- BringMob si est activado
+                        -- BringMob si está activado
                         if Settings.BringMob then
                             BringMobToPlayer(enemy)
                         end
                         
-                        -- Activar Fast Attack si est habilitado
+                        -- Activar Fast Attack si está habilitado
                         if Settings.FastAttack then
                             pcall(function()
                                 local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -1820,7 +1411,7 @@ local function StartAutoRaid()
                         if weapon then
                             weapon:Activate()
                             
-                            -- Usar habilidades de fruta si est activado
+                            -- Usar habilidades de fruta si está activado
                             if Settings.SelectedWeaponType == "Fruit" or (weapon and weapon:FindFirstChild("RemoteFunctionShoot")) then
                                 UseFruitSkills()
                             end
@@ -1836,76 +1427,39 @@ local function StartAutoRaid()
                     end
                 end
             else
-                -- Intentar iniciar raid si no est en una
+                -- Intentar iniciar raid si no está en una
                 if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
                     local currentTime = tick()
                     
-                    -- Evitar spam de inicio de raid (intentar cada 30 segundos para dar tiempo al proceso)
-                    if currentTime - RaidStartTime > 30 then
+                    -- Evitar spam de inicio de raid (intentar cada 5 segundos)
+                    if currentTime - RaidStartTime > 5 then
                         RaidStartTime = currentTime
                         
-                        -- Hacer todo el proceso sin wait() - usar spawn para no bloquear
-                        spawn(function()
-                            -- Paso 1: Ir al Mysterious Scientist para comprar chip
-                            pcall(function()
-                                if Settings.CurrentSea == 2 then
-                                    -- Second Sea: Hot and Cold
-                                    TeleportToLocation(CFrame.new(-6438, 250, -4498))
-                                elseif Settings.CurrentSea == 3 then
-                                    -- Third Sea: Castle on the Sea
-                                    TeleportToLocation(CFrame.new(-5017, 314, -2823))
-                                end
-                            end)
-                            
-                            task.wait(2)
-                            
-                            -- Paso 2: Comprar chip con fruta fsica
-                            local Remote = GetBloxFruitsRemote()
-                            if Remote then
-                                local cheapFruits = {
-                                    "Rocket-Rocket", "Spin-Spin", "Chop-Chop", "Spring-Spring",
-                                    "Bomb-Bomb", "Smoke-Smoke", "Spike-Spike", "Falcon-Falcon",
-                                    "Kilo-Kilo"
-                                }
-                                
-                                local chipBought = false
-                                for _, fruitName in ipairs(cheapFruits) do
-                                    pcall(function()
-                                        local success = Remote:InvokeServer("RaidsNpc", "Select", fruitName)
-                                        if success then
-                                            chipBought = true
-                                            Notify("RAID", "Chip comprado con " .. fruitName, 3)
-                                        end
-                                    end)
-                                    if chipBought then break end
-                                end
-                                
-                                if not chipBought then
-                                    pcall(function()
-                                        Remote:InvokeServer("RaidsNpc", "Select", "Check")
-                                    end)
-                                end
-                                
-                                task.wait(2)
-                                
-                                -- Paso 3: Ir a la zona de inicio
-                                pcall(function()
-                                    if Settings.CurrentSea == 2 then
-                                        TeleportToLocation(CFrame.new(-6555, 299, -4896))
-                                    elseif Settings.CurrentSea == 3 then
-                                        TeleportToLocation(CFrame.new(-5411, 314, -2823))
-                                    end
-                                end)
-                                
-                                task.wait(2)
-                                
-                                -- Paso 4: Iniciar raid
-                                pcall(function()
-                                    Remote:InvokeServer("Raids", "Start")
-                                    Notify("RAID", "Iniciando raid...", 3)
-                                end)
+                        -- Teleport al NPC de raids
+                        pcall(function()
+                            if Settings.CurrentSea == 2 then
+                                -- Second Sea: Raid NPC en el barco
+                                HumanoidRootPart.CFrame = CFrame.new(-6438, 250, -4498)
+                            elseif Settings.CurrentSea == 3 then
+                                -- Third Sea: Raid NPC en Tiki Outpost
+                                HumanoidRootPart.CFrame = CFrame.new(-16224, 9, 462)
                             end
                         end)
+                        
+                        wait(1)
+                        
+                        -- Comprar chip e iniciar raid
+                        local Remote = GetBloxFruitsRemote()
+                        if Remote then
+                            pcall(function()
+                                -- Comprar chip (si no tiene)
+                                Remote:InvokeServer("RaidsNpc", "Select", Settings.SelectedRaid)
+                                wait(0.5)
+                                -- Iniciar raid
+                                Remote:InvokeServer("RaidsNpc", "Buy", Settings.SelectedRaid)
+                            end)
+                            print("🎫 Iniciando raid:", Settings.SelectedRaid)
+                        end
                     end
                 end
             end
@@ -1947,39 +1501,38 @@ local function StartAutoFruitMastery()
                     local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                     
                     if distance > Settings.AttackDistance + 5 then
-                        -- Volar hacia enemigo con TeleportToLocation
-                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                        local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                        HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                     else
-                        TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance + 3))
+                        HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance + 3)
                         
-                        -- Usar habilidades Z, X, C, V si UseFruitSkills est activado
+                        -- Usar habilidades Z, X, C, V si UseFruitSkills está activado
                         if Settings.UseFruitSkills then
-                            spawn(function()
-                                local VIM = game:GetService("VirtualInputManager")
-                                
-                                -- Skill Z
-                                VIM:SendKeyEvent(true, "Z", false, game)
-                                task.wait(0.1)
-                                VIM:SendKeyEvent(false, "Z", false, game)
-                                task.wait(0.8)
-                                
-                                -- Skill X
-                                VIM:SendKeyEvent(true, "X", false, game)
-                                task.wait(0.1)
-                                VIM:SendKeyEvent(false, "X", false, game)
-                                task.wait(0.8)
-                                
-                                -- Skill C
-                                VIM:SendKeyEvent(true, "C", false, game)
-                                task.wait(0.1)
-                                VIM:SendKeyEvent(false, "C", false, game)
-                                task.wait(0.8)
-                                
-                                -- Skill V (si existe)
-                                VIM:SendKeyEvent(true, "V", false, game)
-                                task.wait(0.1)
-                                VIM:SendKeyEvent(false, "V", false, game)
-                            end)
+                            local VIM = game:GetService("VirtualInputManager")
+                            
+                            -- Skill Z
+                            VIM:SendKeyEvent(true, "Z", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "Z", false, game)
+                            wait(0.8)
+                            
+                            -- Skill X
+                            VIM:SendKeyEvent(true, "X", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "X", false, game)
+                            wait(0.8)
+                            
+                            -- Skill C
+                            VIM:SendKeyEvent(true, "C", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "C", false, game)
+                            wait(0.8)
+                            
+                            -- Skill V (si existe)
+                            VIM:SendKeyEvent(true, "V", false, game)
+                            wait(0.1)
+                            VIM:SendKeyEvent(false, "V", false, game)
+                            wait(1)
                         else
                             -- Solo clicks
                             fruitTool:Activate()
@@ -2017,7 +1570,7 @@ end
 local function FindMaterialMob()
     local targetMobs = MaterialMobs[Settings.SelectedMaterial]
     if not targetMobs then 
-        warn(" No se encontraron mobs para el material:", Settings.SelectedMaterial)
+        warn("⚠️ No se encontraron mobs para el material:", Settings.SelectedMaterial)
         return nil 
     end
     
@@ -2054,7 +1607,7 @@ local function StartAutoMaterial()
         if not Settings.AutoMaterial then return end
         
         pcall(function()
-            -- Actualizar referencias de personaje si muri
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
@@ -2074,20 +1627,17 @@ local function StartAutoMaterial()
                 -- Equipar arma del tipo seleccionado
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
-                if distance > 150 then
-                    -- Distancia larga: usar teleport
-                    TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                elseif distance > Settings.AttackDistance + 2 then
-                    -- Volar hacia mob con TeleportToLocation
-                    TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (mob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
-                    TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
                     if Settings.BringMob then
                         BringMobToPlayer(mob)
                     end
                     
-                    -- Activar Fast Attack si est habilitado
+                    -- Activar Fast Attack si está habilitado
                     if Settings.FastAttack then
                         pcall(function()
                             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -2141,7 +1691,7 @@ local function StartAutoBones()
         if not Settings.AutoBones then return end
         
         pcall(function()
-            -- Actualizar referencias de personaje si muri
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
@@ -2178,20 +1728,17 @@ local function StartAutoBones()
                 
                 local distance = (HumanoidRootPart.Position - boneMob.HumanoidRootPart.Position).Magnitude
                 
-                if distance > 150 then
-                    -- Distancia larga: usar teleport
-                    TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
-                elseif distance > Settings.AttackDistance + 2 then
-                    -- Volar hacia bone mob con TeleportToLocation
-                    TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (boneMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
-                    TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    HumanoidRootPart.CFrame = boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
                     if Settings.BringMob then
                         BringMobToPlayer(boneMob)
                     end
                     
-                    -- Activar Fast Attack si est habilitado
+                    -- Activar Fast Attack si está habilitado
                     if Settings.FastAttack then
                         pcall(function()
                             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -2245,7 +1792,7 @@ local function StartAutoEctoplasm()
         if not Settings.AutoEctoplasm then return end
         
         pcall(function()
-            -- Actualizar referencias de personaje si muri
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
@@ -2283,16 +1830,16 @@ local function StartAutoEctoplasm()
                 local distance = (HumanoidRootPart.Position - ectoMob.HumanoidRootPart.Position).Magnitude
                 
                 if distance > Settings.AttackDistance + 2 then
-                    -- Volar hacia mob con TeleportToLocation
-                    TeleportToLocation(ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                    local direction = (ectoMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
-                    TeleportToLocation(ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    HumanoidRootPart.CFrame = ectoMob.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
                     if Settings.BringMob then
                         BringMobToPlayer(ectoMob)
                     end
                     
-                    -- Activar Fast Attack si est habilitado
+                    -- Activar Fast Attack si está habilitado
                     if Settings.FastAttack then
                         pcall(function()
                             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
@@ -2360,10 +1907,6 @@ end
 local FruitCollectConnection
 local function StartAutoFruitCollect()
     if FruitCollectConnection then return end
-local FruitCollectConnection
-local LastFruitStore = 0
-local function StartAutoFruitCollect()
-    if FruitCollectConnection then return end
     
     FruitCollectConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoFruitCollect then return end
@@ -2373,25 +1916,20 @@ local function StartAutoFruitCollect()
             
             if fruit and fruit:FindFirstChild("Handle") then
                 local distance = (HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
-                local currentTime = tick()
                 
-                -- Crear posicin segura (siempre por encima, mnimo Y=50)
-                local targetY = math.max(fruit.Handle.Position.Y + 20, 50)
-                local safePosition = CFrame.new(fruit.Handle.Position.X, targetY, fruit.Handle.Position.Z)
-                
-                if distance > 10 then
-                    -- Usar TweenService para movimiento suave
-                    TeleportToLocation(safePosition)
-                elseif currentTime - LastFruitStore > 3 then
-                    -- Cerca de la fruta y cooldown pasado: intentar recoger
-                    TeleportToLocation(fruit.Handle.CFrame + Vector3.new(0, 5, 0))
+                if distance > 5 then
+                    local direction = (fruit.Handle.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
+                else
+                    -- Intentar recoger la fruta
+                    HumanoidRootPart.CFrame = fruit.Handle.CFrame
+                    wait(0.3)
                     
-                    -- Store en inventario
+                    -- Store en inventario si es posible
                     local Remote = GetBloxFruitsRemote()
                     if Remote then
                         pcall(function()
                             Remote:InvokeServer("StoreFruit", fruit.Name)
-                            LastFruitStore = currentTime
                         end)
                     end
                 end
@@ -2421,7 +1959,7 @@ local function StartFruitNotifier()
             for _, v in pairs(game.Workspace:GetDescendants()) do
                 if v:IsA("Tool") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
                     if not LastNotifiedFruits[v] then
-                        ShowNotification(" FRUTA ENCONTRADA!", v.Name, 10)
+                        ShowNotification("🍎 FRUTA ENCONTRADA!", v.Name, 10)
                         LastNotifiedFruits[v] = true
                     end
                 end
@@ -2439,17 +1977,9 @@ end
 
 -- 3. TELEPORTS
 
--- Variable para trackear tween activo
-local CurrentTween = nil
-
 local function TeleportToLocation(cframe)
     pcall(function()
-        -- Cancelar tween anterior si existe
-        if CurrentTween then
-            CurrentTween:Cancel()
-            CurrentTween = nil
-        end
-        
+        -- Teleport con tween para ser más seguro
         local distance = (HumanoidRootPart.Position - cframe.Position).Magnitude
         
         if distance < 100 then
@@ -2457,16 +1987,8 @@ local function TeleportToLocation(cframe)
         else
             local tweenInfo = TweenInfo.new(distance / Settings.TweenSpeed, Enum.EasingStyle.Linear)
             local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = cframe})
-            CurrentTween = tween
-            
             tween:Play()
-            
-            -- NO usar :Wait() para no bloquear el Heartbeat
-            tween.Completed:Connect(function()
-                if CurrentTween == tween then
-                    CurrentTween = nil
-                end
-            end)
+            tween.Completed:Wait()
         end
     end)
 end
@@ -2475,23 +1997,29 @@ end
 
 -- Auto Observation Haki
 local ObservationConnection
-local ObservationLastUse = 0
 local function StartAutoObservationHaki()
     if ObservationConnection then return end
     
     ObservationConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoObservationHaki then return end
         
-        local currentTime = tick()
-        if currentTime - ObservationLastUse < 5 then return end -- Cooldown de 5 segundos
-        
         pcall(function()
             local Remote = GetBloxFruitsRemote()
             if Remote then
-                -- Activar Observation Haki (solo cada 5 segundos)
+                -- Activar Observation Haki
                 Remote:InvokeServer("KenTalk", "Buy")
                 Remote:InvokeServer("KenTalk", "Start")
-                ObservationLastUse = currentTime
+                
+                -- Esquivar ataques automáticamente
+                if Player.Character:FindFirstChild("Humanoid") then
+                    local enemy = GetNearestEnemy()
+                    if enemy and (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude < 50 then
+                        -- Activar dodge
+                        game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
+                        wait(0.1)
+                        game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
+                    end
+                end
             end
         end)
     end)
@@ -2506,22 +2034,24 @@ end
 
 -- Auto Armament Haki
 local ArmamentConnection
-local ArmamentLastUse = 0
 local function StartAutoArmamentHaki()
     if ArmamentConnection then return end
     
     ArmamentConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoArmamentHaki then return end
         
-        local currentTime = tick()
-        if currentTime - ArmamentLastUse < 10 then return end -- Cooldown de 10 segundos
-        
         pcall(function()
             local Remote = GetBloxFruitsRemote()
             if Remote then
-                -- Comprar Armament Haki (solo una vez cada 10 segundos)
+                -- Comprar y activar Armament Haki
                 Remote:InvokeServer("BuyHaki", "Buso")
-                ArmamentLastUse = currentTime
+                
+                -- Mantener Buso activo
+                if not Player.Character:FindFirstChild("HasBuso") then
+                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "J", false, game)
+                    wait(0.1)
+                    game:GetService("VirtualInputManager"):SendKeyEvent(false, "J", false, game)
+                end
             end
         end)
     end)
@@ -2593,7 +2123,7 @@ local function EnableESP()
             for _, v in pairs(game.Workspace:GetDescendants()) do
                 if v:IsA("Tool") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
                     if not v.Handle:FindFirstChild("BFS_ESP") then
-                        CreateESP(v.Handle, Color3.fromRGB(255, 215, 0), " " .. v.Name)
+                        CreateESP(v.Handle, Color3.fromRGB(255, 215, 0), "🍎 " .. v.Name)
                     end
                 end
             end
@@ -2611,7 +2141,7 @@ local function EnableESP()
             for _, chest in pairs(game.Workspace:GetChildren()) do
                 if chest.Name:find("Chest") and chest:FindFirstChild("Root") then
                     if not chest.Root:FindFirstChild("BFS_ESP") then
-                        CreateESP(chest.Root, Color3.fromRGB(0, 255, 0), " Chest")
+                        CreateESP(chest.Root, Color3.fromRGB(0, 255, 0), "📦 Chest")
                     end
                 end
             end
@@ -2634,7 +2164,7 @@ local function DisableESP()
     end
 end
 
--- Obtener enemigo ms cercano
+-- Obtener enemigo más cercano
 local function GetNearestEnemy()
     local nearestEnemy = nil
     local shortestDistance = Settings.FarmDistance
@@ -2643,7 +2173,7 @@ local function GetNearestEnemy()
         if game.Workspace:FindFirstChild("Enemies") then
             for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                 if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                    if v.Humanoid.Health > 0 and v.Parent then -- Verificar que existe y est vivo
+                    if v.Humanoid.Health > 0 and v.Parent then -- Verificar que existe y está vivo
                         local distance = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
                         if distance < shortestDistance then
                             shortestDistance = distance
@@ -2658,7 +2188,7 @@ local function GetNearestEnemy()
     return nearestEnemy
 end
 
--- Obtener enemigo especfico de quest
+-- Obtener enemigo específico de quest
 local function GetQuestEnemy(enemyName)
     if not enemyName then return GetNearestEnemy() end
     
@@ -2666,7 +2196,6 @@ local function GetQuestEnemy(enemyName)
     local shortestDistance = Settings.FarmDistance
     
     pcall(function()
-        -- Buscar primero en Workspace.Enemies (mobs spawneados)
         if game.Workspace:FindFirstChild("Enemies") then
             for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                 if v.Name == enemyName and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
@@ -2680,164 +2209,93 @@ local function GetQuestEnemy(enemyName)
                 end
             end
         end
-        
-        -- Si no se encontr en Enemies, buscar en ReplicatedStorage (spawns)
-        if not nearestEnemy and game.ReplicatedStorage:FindFirstChild("Remotes") then
-            if game.Workspace:FindFirstChild("_WorldOrigin") then
-                for _, v in pairs(game.Workspace._WorldOrigin.EnemySpawns:GetChildren()) do
-                    if v.Name == enemyName then
-                        -- El mob existe pero no est spawneado, intentar spawnearlo aproximndose
-                        local spawnCFrame = v.CFrame
-                        if spawnCFrame and (HumanoidRootPart.Position - spawnCFrame.Position).Magnitude < 200 then
-                            -- Aproximarse al spawn point
-                            TeleportToLocation(spawnCFrame)
-                            wait(2) -- Esperar a que spawnee
-                            -- Reintentar bsqueda
-                            if game.Workspace:FindFirstChild("Enemies") then
-                                for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
-                                    if enemy.Name == enemyName and enemy:FindFirstChild("HumanoidRootPart") then
-                                        return enemy
-                                    end
-                                end
-                            end
-                        end
-                        break
-                    end
-                end
-            end
-        end
     end)
+    
+    -- Si no encuentra el enemigo de la quest, devolver cualquier enemigo cercano
+    if not nearestEnemy then
+        return GetNearestEnemy()
+    end
     
     return nearestEnemy
 end
 
--- Tomar quest (usando QuestsDatabase.lua)
+-- Tomar quest
 local function TakeQuest()
-    if not CommF_ then 
-        warn(" CommF_ remote no disponible")
+    local Remote = GetBloxFruitsRemote()
+    if not Remote then 
+        warn("⚠️ No se pudo obtener remote para quest")
         return false 
-    end
-    
-    if not QuestsDatabase or type(QuestsDatabase) ~= "table" then
-        warn(" QuestsDatabase no cargado correctamente")
-        return false
     end
     
     local playerLevel = GetPlayerLevel()
-    local selectedQuestGiver = nil
-    local selectedQuestNumber = 1
-    local selectedEnemy = nil
-    local highestLevelReq = 0
+    local selectedQuest = nil
     
-    -- Buscar en QuestsDatabase la quest MS ALTA apropiada
-    for questGiver, quests in pairs(QuestsDatabase) do
-        for questNum, questData in ipairs(quests) do
-            if playerLevel >= questData.LevelReq and questData.LevelReq > highestLevelReq then
-                -- Obtener el enemigo del Task (primer key)
-                for enemyName, count in pairs(questData.Task) do
-                    selectedQuestGiver = questGiver
-                    selectedQuestNumber = questNum
-                    selectedEnemy = enemyName
-                    highestLevelReq = questData.LevelReq
-                    break
-                end
-            end
+    -- Obtener lista de quests del sea actual
+    local currentSeaQuests = QuestList[Settings.CurrentSea] or QuestList[1]
+    
+    -- Encontrar quest apropiada para el nivel
+    for i = #currentSeaQuests, 1, -1 do
+        if playerLevel >= currentSeaQuests[i].Level then
+            selectedQuest = currentSeaQuests[i]
+            break
         end
     end
     
-    if not selectedQuestGiver then 
-        warn(" No se encontr quest para nivel", playerLevel)
+    if not selectedQuest then 
+        warn("⚠️ No se encontró quest apropiada para nivel", playerLevel)
         return false 
     end
     
-    QuestData.CurrentQuestGiver = selectedQuestGiver
-    QuestData.CurrentQuestNumber = selectedQuestNumber
-    QuestData.QuestMob = selectedEnemy
-    QuestData.QuestLevel = playerLevel
+    QuestData.CurrentQuest = selectedQuest.QuestGiver
+    QuestData.QuestMob = selectedQuest.Enemy
+    QuestData.QuestLevel = selectedQuest.Level
     
-    -- Hacer proceso asncrono
-    spawn(function()
-        task.wait(0.3)
-        
-        -- Tomar quest via CommF_
-        local success = pcall(function()
-            CommF_:InvokeServer("StartQuest", selectedQuestGiver, selectedQuestNumber)
-        end)
-        
-        if success then
-            print(" Quest tomada:", selectedEnemy, "- Nivel", playerLevel)
-        else
-            warn(" Error al tomar quest")
-        end
+    -- Teleport a NPC de quest
+    pcall(function()
+        HumanoidRootPart.CFrame = selectedQuest.Location
+    end)
+    wait(0.5)
+    
+    -- Tomar quest via remote
+    local success = pcall(function()
+        Remote:InvokeServer("StartQuest", selectedQuest.QuestGiver, 1)
     end)
     
-    return true
+    if success then
+        print("✅ Quest tomada:", selectedQuest.Enemy, "- Nivel", selectedQuest.Level)
+    else
+        warn("⚠️ Error al tomar quest")
+    end
+    
+    return success
 end
 
 -- BringMob (reducido para seguridad)
--- BringMobs con AlignPosition (sistema seguro)
-local BringAttachment = Instance.new("Attachment")
-local AlignPos = Instance.new("AlignPosition")
-AlignPos.Attachment0 = BringAttachment
-AlignPos.RigidityEnabled = false
-AlignPos.ReactionForceEnabled = false
-AlignPos.ApplyAtCenterOfMass = true
-AlignPos.MaxForce = 9e9
-AlignPos.MaxVelocity = 9e9
-AlignPos.Responsiveness = 200
-AlignPos.Parent = BringAttachment
-
-local BroughtMobs = {}
-
 local function BringMobToPlayer(enemy)
     if not Settings.BringMob or not enemy then return end
-    if not enemy:FindFirstChild("HumanoidRootPart") or not enemy:FindFirstChild("Humanoid") then return end
-    if not HumanoidRootPart then return end -- Verificar que el jugador existe
-    if BroughtMobs[enemy] then return end -- Ya trado
     
-    local enemyRoot = enemy.HumanoidRootPart
-    local humanoid = enemy.Humanoid
-    
-    if humanoid.Health > 0 then
-        pcall(function()
-            -- Usar AlignPosition en lugar de CFrame directo
-            local att = BringAttachment:Clone()
-            att.Parent = enemyRoot
-            att.WorldPosition = HumanoidRootPart.Position + Vector3.new(0, -5, 0)
-            
-            local alignPos = att:FindFirstChildOfClass("AlignPosition")
-            if alignPos then
-                alignPos.Attachment1 = att
-            end
-            
-            enemyRoot.CanCollide = false
-            enemyRoot.Size = Vector3.new(10, 10, 10)
+    pcall(function()
+        if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+            enemy.HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 0, -Settings.AttackDistance)
+            enemy.HumanoidRootPart.CanCollide = false
+            enemy.HumanoidRootPart.Size = Vector3.new(10, 10, 10)
             
             if enemy:FindFirstChild("Head") then
                 enemy.Head.CanCollide = false
             end
             
-            if humanoid:FindFirstChild("Animator") then
-                humanoid.Animator:Destroy()
+            if enemy.Humanoid:FindFirstChild("Animator") then
+                enemy.Humanoid.Animator:Destroy()
             end
             
-            humanoid:ChangeState(14)
-            humanoid.WalkSpeed = 0
-            
-            BroughtMobs[enemy] = true
-            
-            -- Limpiar cuando muera
-            humanoid.Died:Connect(function()
-                BroughtMobs[enemy] = nil
-                if att then att:Destroy() end
-            end)
-        end)
-    end
+            enemy.Humanoid:ChangeState(14)
+            enemy.Humanoid.WalkSpeed = 0
+        end
+    end)
 end
 
--- Sistema de Auto Farm (optimizado)
+-- Sistema de Auto Farm
 local FarmConnection
-local LastQuestCheck = 0
 local function StartAutoFarm()
     if FarmConnection then return end
     
@@ -2845,20 +2303,11 @@ local function StartAutoFarm()
         if not Settings.AutoFarm then return end
         
         pcall(function()
-            -- Actualizar referencias de personaje si muri
+            -- Actualizar referencias de personaje si murió
             if not Character or not Character.Parent then
                 Character = Player.Character or Player.CharacterAdded:Wait()
                 Humanoid = Character:WaitForChild("Humanoid")
                 HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-            end
-            
-            -- Auto Quest: verificar y tomar quest cada 30 segundos
-            local currentTime = tick()
-            if Settings.AutoQuest and currentTime - LastQuestCheck > 30 then
-                LastQuestCheck = currentTime
-                spawn(function()
-                    TakeQuest()
-                end)
             end
             
             local enemy
@@ -2877,39 +2326,33 @@ local function StartAutoFarm()
                 
                 local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                 
-                -- Equipar arma del tipo seleccionado (solo si no la tenemos)
-                local currentWeapon = GetCurrentWeapon()
-                if not currentWeapon then
-                    EquipWeaponByType(Settings.SelectedWeaponType)
-                end
+                -- Equipar arma del tipo seleccionado
+                EquipWeaponByType(Settings.SelectedWeaponType)
                 
-                -- Mover hacia el enemigo (distancias optimizadas)
-                if distance > 200 then
-                    -- Muy lejos: teleport directo
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0))
-                elseif distance > Settings.AttackDistance + 5 then
-                    -- Distancia media: acercarse
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                -- Mover hacia el enemigo
+                if distance > Settings.AttackDistance + 2 then
+                    local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
+                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
-                    -- Rango de ataque: posicionar y atacar
-                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance))
+                    -- Posicionar para atacar
+                    HumanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, Settings.AttackDistance)
                     
-                    -- BringMob si est activado
+                    -- BringMob si está activado
                     if Settings.BringMob then
                         BringMobToPlayer(enemy)
                     end
                     
-                    -- Activar Fast Attack si est habilitado
+                    -- Activar Fast Attack si está habilitado
                     if Settings.FastAttack then
                         pcall(function()
                             local CombatFrameworkLib = debug.getupvalues(require(Player.PlayerScripts:WaitForChild("CombatFramework")))[2]
                             if CombatFrameworkLib and CombatFrameworkLib.activeController then
                                 local ActiveController = CombatFrameworkLib.activeController
-                                ActiveController.hitboxMagnitude = 65
+                                ActiveController.hitboxMagnitude = 60
                                 ActiveController.active = false
                                 ActiveController.timeToNextAttack = 0
                                 ActiveController.attacking = false
-                                ActiveController.increment = 4
+                                ActiveController.increment = 3
                                 ActiveController.blocking = false
                                 
                                 if ActiveController.blade then
@@ -3012,66 +2455,35 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function(time)
     VirtualInputManager:SendKeyEvent(false, "W", false, game)
 end)
 
-Notify("BFS DEBUG", "Creando UI...", 2)
-print(" Iniciando creacin de UI...")
+print("🎨 Creando interfaz de usuario...")
 
--- Variables globales para UI (necesarias para las funciones Show*Category)
-local GUI, Sidebar, ContentArea
-
--- Crear UI con proteccin de errores
-print(" Llamando CreateUI()...")
-local success, result1, result2, result3, result4, result5 = pcall(CreateUI)
-print("CreateUI result: success=", success, "result1=", tostring(result1))
-
+-- Crear UI con protección de errores
+local success, result1, result2, result3 = pcall(CreateUI)
 if not success then
-    warn(" CreateUI fall:", tostring(result1))
-    Notify("ERROR", "CreateUI: " .. tostring(result1):sub(1, 40), 10)
+    warn("❌ Error al crear UI:", result1)
+    error("No se pudo crear la interfaz")
     return
 end
 
-Notify("BFS DEBUG", "CreateUI exitoso", 2)
-print(" CreateUI exitoso")
-
-GUI = result1
-Sidebar = result2  -- Este es SidebarScroll en realidad
-ContentArea = result3  -- Este es ContentScroll en realidad
-
-print("GUI =", tostring(GUI))
-print("Sidebar =", tostring(Sidebar))
-print("ContentArea =", tostring(ContentArea))
-
--- No necesitamos los frames contenedores, solo los ScrollingFrames
+local GUI = result1
+local Sidebar = result2
+local ContentArea = result3
 
 if not GUI or not Sidebar or not ContentArea then
-    warn(" UI es nil - GUI:", tostring(GUI), "Sidebar:", tostring(Sidebar), "ContentArea:", tostring(ContentArea))
-    Notify("ERROR", "UI nil", 10)
+    warn("❌ Error: UI, Sidebar o ContentArea es nil")
+    error("No se pudo crear la interfaz correctamente")
     return
 end
 
-Notify("BFS DEBUG", "Insertando en PlayerGui", 2)
-print(" Insertando GUI en PlayerGui...")
+print("✅ UI creada exitosamente")
 
--- Insertar UI en PlayerGui
-local playerGui = Player:WaitForChild("PlayerGui", 5)
-if not playerGui then
-    warn(" PlayerGui no encontrado")
-    Notify("ERROR", "PlayerGui no encontrado", 10)
-    return
-end
+-- FUNCIONES PARA CREAR CADA CATEGORÍA
 
-GUI.Parent = playerGui
-print(" GUI insertado en PlayerGui")
-
-Notify("BFS DEBUG", "Creando botones...", 2)
-print(" Creando botones de categora...")
-
--- FUNCIONES PARA CREAR CADA CATEGORA
-
--- 1. CATEGORA: FARMING
+-- 1. CATEGORÍA: FARMING
 local function ShowFarmingCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " AUTO FARMING")
+    CreateSection(ContentArea, "📦 AUTO FARMING")
     
     CreateToggle(ContentArea, "Auto Farm", function(value)
         Settings.AutoFarm = value
@@ -3108,8 +2520,19 @@ local function ShowFarmingCategory()
     CreateToggle(ContentArea, "Bring Mob", function(value)
         Settings.BringMob = value
     end)
+        Settings.FastAttack = value
+        if value then
+            StartFastAttack()
+        else
+            StopFastAttack()
+        end
+    end)
     
-    CreateSection(ContentArea, " MASTERY")
+    CreateToggle(ContentArea, "Bring Mob", function(value)
+        Settings.BringMob = value
+    end)
+    
+    CreateSection(ContentArea, "⚔️ MASTERY")
     
     CreateToggle(ContentArea, "Auto Mastery", function(value)
         Settings.AutoMastery = value
@@ -3134,7 +2557,7 @@ local function ShowFarmingCategory()
         end)
     end
     
-    CreateSection(ContentArea, " FRUIT MASTERY")
+    CreateSection(ContentArea, "🍎 FRUIT MASTERY")
     
     CreateToggle(ContentArea, "Auto Fruit Mastery", function(value)
         Settings.AutoFruitMastery = value
@@ -3150,11 +2573,11 @@ local function ShowFarmingCategory()
     end)
 end
 
--- 2. CATEGORA: MATERIALS
+-- 2. CATEGORÍA: MATERIALS
 local function ShowMaterialsCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " FARM MATERIALS")
+    CreateSection(ContentArea, "💎 FARM MATERIALS")
     
     CreateToggle(ContentArea, "Auto Farm Material", function(value)
         Settings.AutoMaterial = value
@@ -3169,7 +2592,7 @@ local function ShowMaterialsCategory()
         Settings.SelectedMaterial = selected
     end)
     
-    CreateSection(ContentArea, " BONES & ECTOPLASM")
+    CreateSection(ContentArea, "🦴 BONES & ECTOPLASM")
     
     CreateToggle(ContentArea, "Auto Farm Bones", function(value)
         Settings.AutoBones = value
@@ -3190,11 +2613,11 @@ local function ShowMaterialsCategory()
     end)
 end
 
--- 3. CATEGORA: TELEPORTS
+-- 3. CATEGORÍA: TELEPORTS
 local function ShowTeleportsCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " ISLAND TELEPORTS")
+    CreateSection(ContentArea, "🗺️ ISLAND TELEPORTS")
     
     local currentSeaTeleports = {}
     for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
@@ -3206,27 +2629,27 @@ local function ShowTeleportsCategory()
             Settings.SelectedTeleport = selected
         end)
         
-        CreateButton(ContentArea, " Teleport to Island", function()
+        CreateButton(ContentArea, "🚀 Teleport to Island", function()
             if Settings.SelectedTeleport then
                 for _, loc in pairs(TeleportLocations[Settings.CurrentSea] or {}) do
                     if loc.Name == Settings.SelectedTeleport then
                         TeleportToLocation(loc.Location)
-                        ShowNotification(" Teleport", "Viajando a " .. Settings.SelectedTeleport, 3)
+                        ShowNotification("📍 Teleport", "Viajando a " .. Settings.SelectedTeleport, 3)
                         break
                     end
                 end
             else
-                ShowNotification(" Error", "Selecciona una isla primero", 2)
+                ShowNotification("⚠️ Error", "Selecciona una isla primero", 2)
             end
         end)
     end
 end
 
--- 4. CATEGORA: BOSSES
+-- 4. CATEGORÍA: BOSSES
 local function ShowBossesCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " AUTO BOSS")
+    CreateSection(ContentArea, "👑 AUTO BOSS")
     
     CreateToggle(ContentArea, "Auto Boss", function(value)
         Settings.AutoBoss = value
@@ -3248,7 +2671,7 @@ local function ShowBossesCategory()
         end)
     end
     
-    CreateSection(ContentArea, " EVENTS & CHESTS")
+    CreateSection(ContentArea, "🌊 EVENTS & CHESTS")
     
     CreateToggle(ContentArea, "Auto Sea Event", function(value)
         Settings.AutoSeaEvent = value
@@ -3278,11 +2701,11 @@ local function ShowBossesCategory()
     end)
 end
 
--- 5. CATEGORA: FRUITS
+-- 5. CATEGORÍA: FRUITS
 local function ShowFruitsCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " DEVIL FRUITS")
+    CreateSection(ContentArea, "🍎 DEVIL FRUITS")
     
     CreateToggle(ContentArea, "Auto Collect Fruits", function(value)
         Settings.AutoFruitCollect = value
@@ -3303,11 +2726,11 @@ local function ShowFruitsCategory()
     end)
 end
 
--- 6. CATEGORA: RAIDS
+-- 6. CATEGORÍA: RAIDS
 local function ShowRaidsCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " AUTO RAID")
+    CreateSection(ContentArea, "⚔️ AUTO RAID")
     
     CreateToggle(ContentArea, "Auto Raid", function(value)
         Settings.AutoRaid = value
@@ -3331,15 +2754,15 @@ local function ShowRaidsCategory()
             Settings.UseFruitSkills = value
         end)
     else
-        CreateLabel(ContentArea, " Raids disponibles en Sea 2 y 3")
+        CreateLabel(ContentArea, "⚠️ Raids disponibles en Sea 2 y 3")
     end
 end
 
--- 7. CATEGORA: HAKI
+-- 7. CATEGORÍA: HAKI
 local function ShowHakiCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " HAKI TRAINING")
+    CreateSection(ContentArea, "🥋 HAKI TRAINING")
     
     CreateToggle(ContentArea, "Auto Observation Haki", function(value)
         Settings.AutoObservationHaki = value
@@ -3360,11 +2783,11 @@ local function ShowHakiCategory()
     end)
 end
 
--- 8. CATEGORA: ESP
+-- 8. CATEGORÍA: ESP
 local function ShowESPCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " ESP & VISUALS")
+    CreateSection(ContentArea, "👁️ ESP & VISUALS")
     
     CreateToggle(ContentArea, "Enable ESP", function(value)
         Settings.EnableESP = value
@@ -3374,18 +2797,19 @@ local function ShowESPCategory()
             DisableESP()
         end
     end)
+end
 
--- 9. CATEGORA: SETTINGS
+-- 9. CATEGORÍA: SETTINGS
 local function ShowSettingsCategory()
     ClearContent(ContentArea)
     
-    CreateSection(ContentArea, " GENERAL SETTINGS")
+    CreateSection(ContentArea, "⚙️ GENERAL SETTINGS")
     
     CreateToggle(ContentArea, "Safe Mode (60%)", function(value)
         Settings.SafeMode = value
     end)
     
-    CreateSection(ContentArea, " AUTO STATS")
+    CreateSection(ContentArea, "📊 AUTO STATS")
     
     CreateToggle(ContentArea, "Enable Auto Stats", function(value)
         Settings.AutoStats = value
@@ -3399,26 +2823,25 @@ local function ShowSettingsCategory()
     CreateDropdown(ContentArea, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
         Settings.SelectedStat = selected
     end)
+end
 
--- CREAR BOTONES DE CATEGORAS EN SIDEBAR
-CreateCategoryButton(Sidebar, "", "Farming", ShowFarmingCategory)
-CreateCategoryButton(Sidebar, "", "Materials", ShowMaterialsCategory)
-CreateCategoryButton(Sidebar, "", "Teleports", ShowTeleportsCategory)
-CreateCategoryButton(Sidebar, "", "Bosses", ShowBossesCategory)
-CreateCategoryButton(Sidebar, "", "Fruits", ShowFruitsCategory)
-CreateCategoryButton(Sidebar, "", "Raids", ShowRaidsCategory)
-CreateCategoryButton(Sidebar, "", "Haki", ShowHakiCategory)
-CreateCategoryButton(Sidebar, "", "ESP", ShowESPCategory)
-CreateCategoryButton(Sidebar, "", "Settings", ShowSettingsCategory)
+-- CREAR BOTONES DE CATEGORÍAS EN SIDEBAR
+CreateCategoryButton(Sidebar, "📦", "Farming", ShowFarmingCategory)
+CreateCategoryButton(Sidebar, "💎", "Materials", ShowMaterialsCategory)
+CreateCategoryButton(Sidebar, "🗺️", "Teleports", ShowTeleportsCategory)
+CreateCategoryButton(Sidebar, "👑", "Bosses", ShowBossesCategory)
+CreateCategoryButton(Sidebar, "🍎", "Fruits", ShowFruitsCategory)
+CreateCategoryButton(Sidebar, "⚔️", "Raids", ShowRaidsCategory)
+CreateCategoryButton(Sidebar, "🥋", "Haki", ShowHakiCategory)
+CreateCategoryButton(Sidebar, "👁️", "ESP", ShowESPCategory)
+CreateCategoryButton(Sidebar, "⚙️", "Settings", ShowSettingsCategory)
 
--- Mostrar categora inicial (Farming)
+-- Mostrar categoría inicial (Farming)
 ShowFarmingCategory()
 
-Notify("BFS HUB", " Cargado exitosamente!", 5)
-
--- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categoras
+-- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
 --[[
-CreateSection(ScrollFrame, " FARMING")
+CreateSection(ScrollFrame, "📦 FARMING")
 
 CreateToggle(ScrollFrame, "Auto Farm", function(value)
     Settings.AutoFarm = value
@@ -3438,67 +2861,69 @@ CreateToggle(ScrollFrame, "Auto Quest", function(value)
         StopAutoQuest()
     end
 end)
--- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categoras
+-- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
 --]]
 
--- Inicializacin
+-- Inicialización
 print("========================================")
-print(" BFS Hub v4.2 - ULTIMATE EDITION")
+print("🎮 BFS Hub v4.2 - ULTIMATE EDITION")
 print("========================================")
-print(" Sea: " .. (Settings.CurrentSea == 1 and "Old World (1)" or Settings.CurrentSea == 2 and "New World (2)" or "Third Sea (3)"))
-print(" Nivel: " .. GetPlayerLevel() .. " / 2800")
-print(" Quest: " .. (QuestData.QuestMob or "Ninguna"))
+print("🌊 Sea: " .. (Settings.CurrentSea == 1 and "Old World (1)" or Settings.CurrentSea == 2 and "New World (2)" or "Third Sea (3)"))
+print("📊 Nivel: " .. GetPlayerLevel() .. " / 2800")
+print("⚔️ Quest: " .. (QuestData.QuestMob or "Ninguna"))
 print("========================================")
-print(" CARACTERSTICAS COMPLETAS:")
+print("✅ CARACTERÍSTICAS COMPLETAS:")
 print("")
-print(" FARMING:")
-print("   Auto Farm + Quest (75+ quests)")
-print("   Fast Attack Optimizado")
-print("   Bring Mob Seguro")
-print("   Safe Mode")
+print("📦 FARMING:")
+print("  • Auto Farm + Quest (75+ quests)")
+print("  • Fast Attack Optimizado")
+print("  • Bring Mob Seguro")
+print("  • Safe Mode")
 print("")
-print(" BOSS & EVENTS:")
-print("   Auto Boss (30+ bosses)")
-print("   Auto Sea Events")
-print("   Auto Chest")
+print("👑 BOSS & EVENTS:")
+print("  • Auto Boss (30+ bosses)")
+print("  • Auto Sea Events")
+print("  • Auto Chest")
 print("")
-print(" MATERIALS & BONES:")
-print("   Auto Farm Materials (12 tipos)")
-print("   Auto Farm Bones (Sea 3)")
-print("   Auto Farm Ectoplasm")
+print("💎 MATERIALS & BONES:")
+print("  • Auto Farm Materials (12 tipos)")
+print("  • Auto Farm Bones (Sea 3)")
+print("  • Auto Farm Ectoplasm")
 print("")
-print(" FRUITS:")
-print("   Auto Collect Fruits")
-print("   Fruit Notifier (alerta)")
-print("   Auto Store Fruits")
+print("🍎 FRUITS:")
+print("  • Auto Collect Fruits")
+print("  • Fruit Notifier (alerta)")
+print("  • Auto Store Fruits")
 print("")
-print(" NAVIGATION:")
-print("   Teleports (30+ ubicaciones)")
-print("   Por Sea especfico")
+print("🗺️ NAVIGATION:")
+print("  • Teleports (30+ ubicaciones)")
+print("  • Por Sea específico")
 print("")
-print(" HAKI TRAINING:")
-print("   Auto Observation Haki")
-print("   Auto Armament Haki")
-print("   Auto dodge/active")
+print("🥋 HAKI TRAINING:")
+print("  • Auto Observation Haki")
+print("  • Auto Armament Haki")
+print("  • Auto dodge/active")
 print("")
-print(" ESP & VISUALS:")
-print("   ESP Enemies (rojo)")
-print("   ESP Fruits (dorado)")
-print("   ESP Chests (verde)")
+print("👁️ ESP & VISUALS:")
+print("  • ESP Enemies (rojo)")
+print("  • ESP Fruits (dorado)")
+print("  • ESP Chests (verde)")
 print("")
-print(" ISLANDS & RAIDS:")
-print("   Auto Mirage Island")
-print("   Auto Raid (14 raids)")
-print("   Auto Mastery (armas + frutas)")
-print("   Skills automticas (Z/X/C/V)")
+print("🏝️ ISLANDS & RAIDS:")
+print("  • Auto Mirage Island")
+print("  • Auto Raid (14 raids)")
+print("  • Auto Mastery (armas + frutas)")
+print("  • Skills automáticas (Z/X/C/V)")
 print("")
-print(" STATS:")
-print("   Auto Stats (5 opciones)")
-print("   Anti-AFK integrado")
+print("📊 STATS:")
+print("  • Auto Stats (5 opciones)")
+print("  • Anti-AFK integrado")
 print("")
-print(" TODAS LAS OPCIONES DESACTIVADAS")
+print("⚠️ TODAS LAS OPCIONES DESACTIVADAS")
 print("   Activa solo las que necesites usar")
 print("========================================")
 
-print(" BFS Scripts v4.2 ULTIMATE cargado completamente!")
-print(" UI activa - Presiona el botn minimize para ocultar")
+print("🎮 BFS Scripts cargado completamente!")
+
+-- Nota: El módulo completo de Blox Fruits está ofuscado en Module.luau
+-- Este loader simplificado carga solo la UI para compatibilidad con Delta
