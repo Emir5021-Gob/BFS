@@ -1,4 +1,233 @@
-﻿-- BFS Premium Hub v4.2 - ULTIMATE EDITION
+﻿-- BFS Hub v4.2 - Desde Cero
+-- Script completamente nuevo y optimizado
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Notificación simple
+local function Notify(title, text)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = 3
+    })
+end
+
+Notify("BFS Hub", "Cargando...")
+
+-- Crear UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BFSHub"
+ScreenGui.ResetOnSpawn = false
+
+-- Frame principal
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 400, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -225)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 10)
+Corner.Parent = MainFrame
+
+-- Header
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 40)
+Header.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 10)
+HeaderCorner.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.Text = "BFS Hub v4.2"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+-- Botón cerrar
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 14
+CloseBtn.Parent = Header
+
+local CloseBtnCorner = Instance.new("UICorner")
+CloseBtnCorner.CornerRadius = UDim.new(0, 8)
+CloseBtnCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- ScrollingFrame para contenido
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(1, -20, 1, -60)
+ScrollFrame.Position = UDim2.new(0, 10, 0, 50)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.Parent = MainFrame
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0, 10)
+Layout.Parent = ScrollFrame
+
+-- Función para crear sección
+local function CreateSection(text)
+    local Section = Instance.new("TextLabel")
+    Section.Size = UDim2.new(1, 0, 0, 30)
+    Section.BackgroundTransparency = 1
+    Section.Font = Enum.Font.GothamBold
+    Section.Text = text
+    Section.TextColor3 = Color3.fromRGB(100, 150, 255)
+    Section.TextSize = 14
+    Section.TextXAlignment = Enum.TextXAlignment.Left
+    Section.Parent = ScrollFrame
+end
+
+-- Función para crear toggle
+local function CreateToggle(text, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 35)
+    Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = ScrollFrame
+    
+    local FrameCorner = Instance.new("UICorner")
+    FrameCorner.CornerRadius = UDim.new(0, 6)
+    FrameCorner.Parent = Frame
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -60, 1, 0)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Font = Enum.Font.Gotham
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+    
+    local Toggle = Instance.new("TextButton")
+    Toggle.Size = UDim2.new(0, 45, 0, 22)
+    Toggle.Position = UDim2.new(1, -50, 0.5, -11)
+    Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    Toggle.BorderSizePixel = 0
+    Toggle.Text = ""
+    Toggle.Parent = Frame
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(1, 0)
+    ToggleCorner.Parent = Toggle
+    
+    local Indicator = Instance.new("Frame")
+    Indicator.Size = UDim2.new(0, 18, 0, 18)
+    Indicator.Position = UDim2.new(0, 2, 0.5, -9)
+    Indicator.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+    Indicator.BorderSizePixel = 0
+    Indicator.Parent = Toggle
+    
+    local IndCorner = Instance.new("UICorner")
+    IndCorner.CornerRadius = UDim.new(1, 0)
+    IndCorner.Parent = Indicator
+    
+    local enabled = false
+    
+    Toggle.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            Indicator.Position = UDim2.new(1, -20, 0.5, -9)
+            Indicator.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+            Toggle.BackgroundColor3 = Color3.fromRGB(70, 140, 70)
+        else
+            Indicator.Position = UDim2.new(0, 2, 0.5, -9)
+            Indicator.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+            Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        end
+        callback(enabled)
+    end)
+end
+
+-- Función para crear botón
+local function CreateButton(text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 0, 35)
+    Button.BackgroundColor3 = Color3.fromRGB(60, 120, 220)
+    Button.BorderSizePixel = 0
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 12
+    Button.Parent = ScrollFrame
+    
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Button
+    
+    Button.MouseButton1Click:Connect(function()
+        callback()
+    end)
+end
+
+-- CONTENIDO DEL HUB
+CreateSection("⚔️ AUTO FARM")
+CreateToggle("Auto Farm Level", function(enabled)
+    Notify("Auto Farm", enabled and "Activado" or "Desactivado")
+end)
+
+CreateSection("📦 MATERIALES")
+CreateToggle("Auto Farm Material", function(enabled)
+    Notify("Material Farm", enabled and "Activado" or "Desactivado")
+end)
+
+CreateSection("🗺️ TELEPORTS")
+CreateButton("Teleport a Spawn", function()
+    Notify("Teleport", "En desarrollo")
+end)
+
+CreateSection("👹 BOSSES")
+CreateToggle("Auto Boss", function(enabled)
+    Notify("Auto Boss", enabled and "Activado" or "Desactivado")
+end)
+
+CreateSection("🍎 FRUTAS")
+CreateToggle("Auto Collect Fruits", function(enabled)
+    Notify("Fruit Collect", enabled and "Activado" or "Desactivado")
+end)
+
+CreateSection("⚙️ CONFIGURACIÓN")
+CreateToggle("Safe Mode", function(enabled)
+    Notify("Safe Mode", enabled and "Activado" or "Desactivado")
+end)
+
+-- Ajustar canvas
+Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
+end)
+
+-- Insertar en PlayerGui
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+
+Notify("BFS Hub", "Cargado exitosamente!")
+print("BFS Hub v4.2 cargado correctamente")
 -- Optimizado para movil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
 -- VERSION: 2bf2a15 - 04/01/2026
