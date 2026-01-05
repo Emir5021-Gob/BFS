@@ -32,32 +32,30 @@ end
 -- Función para descargar código
 local function DownloadScript(url)
     local success, result = pcall(function()
-        return game:HttpGet(url)
+        return game:HttpGet(url, true)
     end)
     
-    if not success then
-        return nil
+    if not success or not result or result == "" then
+        return nil, "Error de conexión"
     end
     
-    return result
+    return result, nil
 end
 
 -- Función para cargar y ejecutar código
 local function LoadScript(scriptName)
-    local code = DownloadScript(REPO_URL .. "Games/" .. scriptName)
+    local code, err = DownloadScript(REPO_URL .. "Games/" .. scriptName)
     
     if not code then
-        error("No se pudo descargar el script")
-        return
+        return nil, err
     end
     
-    local func, err = loadstring(code)
+    local func, loadErr = loadstring(code)
     if not func then
-        error("El script tiene errores de sintaxis")
-        return
+        return nil, "Error de sintaxis"
     end
     
-    return func
+    return func, nil
 end
 
 -- Detectar juego actual
@@ -89,49 +87,53 @@ pcall(function()
     })
 end)
 
-wait(1)
+wait(0.5)
 
 -- Cargar y ejecutar el script del juego
 local GameScript, loadError = LoadScript(gameInfo.Script)
 
 if not GameScript then
+    wait(0.5)
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "❌ Error de Descarga";
-            Text = "No se pudo descargar el script del servidor";
-            Duration = 5;
+            Text = loadError or "No se pudo descargar";
+            Duration = 8;
         })
     end)
     return
 end
 
+wait(0.5)
 pcall(function()
     game.StarterGui:SetCore("SendNotification", {
-        Title = "⚙️ Iniciando...";
-        Text = "Ejecutando BFS Hub";
+        Title = "⚙️ Iniciando Hub";
+        Text = "Ejecutando BFS...";
         Duration = 2;
     })
 end)
 
-wait(0.5)
+wait(0.3)
 
-local success, err = pcall(function()
+local success, execError = pcall(function()
     GameScript()
 end)
+
+wait(0.5)
 
 if not success then
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "❌ Error al Ejecutar";
-            Text = "Verifica tu conexión a internet";
-            Duration = 5;
+            Text = "Error en el script";
+            Duration = 8;
         })
     end)
 else
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "✅ Hub Cargado";
-            Text = "BFS v4.2 iniciado correctamente";
+            Text = "BFS v4.2 iniciado";
             Duration = 3;
         })
     end)
