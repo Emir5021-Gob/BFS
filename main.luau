@@ -76,8 +76,23 @@ end
 print("✅ Compilación exitosa")
 print("🎮 Ejecutando script...")
 
--- Ejecutar el script SIN PCALL para ver errores reales
-func()
+-- Ejecutar el script CON MANEJO DE ERRORES
+local executeSuccess, executeError = pcall(func)
+
+if not executeSuccess then
+    warn("❌ ERROR EN EJECUCIÓN:")
+    warn(tostring(executeError))
+    
+    -- Notificación visual del error
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "❌ ERROR BFS",
+            Text = "Ver consola (F9) para detalles",
+            Duration = 10,
+        })
+    end)
+    return
+end
 
 print("✅ BFS Scripts cargado completamente!")
 
