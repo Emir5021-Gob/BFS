@@ -126,12 +126,46 @@ print(" Compilando...")
 local func, compileError = loadstring(code)
 
 if not func then
+    local errStr = tostring(compileError)
     warn(" ERROR DE COMPILACIN:")
-    warn(tostring(compileError))
+    warn(errStr)
+    -- Extraer numero de linea del error si existe
+    local lineNum
+    pcall(function()
+        lineNum = tonumber((errStr:match(":(%%d+):")) or (errStr:match("line (%%d+)")))
+    end)
+    if lineNum then
+        -- Mostrar snippet de 3 lineas alrededor del error
+        local lines = {}
+        for l in code:gmatch("[^\r\n]+") do
+            table.insert(lines, l)
+        end
+        local from = math.max(1, lineNum - 1)
+        local to = math.min(#lines, lineNum + 1)
+        warn(" Linea:", lineNum, "de", #lines)
+        for i = from, to do
+            warn(i .. ": " .. lines[i])
+        end
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = " Error Compilacion",
+                Text = "Linea " .. tostring(lineNum),
+                Duration = 10,
+            })
+        end)
+    else
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = " Error Compilacion",
+                Text = errStr:sub(1, 100),
+                Duration = 10,
+            })
+        end)
+    end
     -- Intentar fallback a script minimal
     pcall(function()
         game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = " Error Compilacion",
+            Title = " Fallback",
             Text = "Usando version minimal",
             Duration = 6,
         })
