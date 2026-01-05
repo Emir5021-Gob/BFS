@@ -1006,29 +1006,22 @@ end
 local function FindBoss(bossName)
     if not bossName or bossName == "" then return nil end
     
+    local foundBoss = nil
+    
     -- Buscar en Workspace.Enemies
     pcall(function()
         if game.Workspace:FindFirstChild("Enemies") then
             for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                 if v.Name == bossName and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
                     if v.Humanoid.Health > 0 then
-                        return v
+                        foundBoss = v
                     end
                 end
             end
         end
     end)
     
-    -- Buscar en ReplicatedStorage (bosses no spawneados)
-    pcall(function()
-        for _, v in pairs(ReplicatedStorage:GetChildren()) do
-            if v.Name == bossName then
-                return nil -- Boss existe pero no está spawneado
-            end
-        end
-    end)
-    
-    return nil
+    return foundBoss
 end
 
 -- Auto Chest
@@ -1145,8 +1138,11 @@ local function StartAutoBoss()
                 -- Equipar arma del tipo seleccionado
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
-                if distance > Settings.AttackDistance + 2 then
-                    -- Volar hacia boss
+                if distance > 150 then
+                    -- Distancia larga: usar teleport
+                    TeleportToLocation(boss.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                elseif distance > Settings.AttackDistance + 2 then
+                    -- Distancia media: volar
                     local direction = (boss.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                     HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
@@ -1218,7 +1214,9 @@ local function StartAutoMastery()
                 
                 local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
                 
-                if distance > Settings.AttackDistance + 2 then
+                if distance > 150 then
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                elseif distance > Settings.AttackDistance + 2 then
                     local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                     HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
@@ -1438,13 +1436,14 @@ local function StartAutoRaid()
                         local Remote = GetBloxFruitsRemote()
                         if Remote then
                             pcall(function()
-                                -- Comprar chip (si no tiene)
+                                -- Primero comprar chip
                                 Remote:InvokeServer("RaidsNpc", "Select", Settings.SelectedRaid)
+                                wait(1)
+                                -- Luego iniciar raid
+                                Remote:InvokeServer("Raids", "Start")
                                 wait(0.5)
-                                -- Iniciar raid
-                                Remote:InvokeServer("RaidsNpc", "Buy", Settings.SelectedRaid)
+                                Notify("RAID", "Iniciando " .. Settings.SelectedRaid, 3)
                             end)
-                            print("🎫 Iniciando raid:", Settings.SelectedRaid)
                         end
                     end
                 end
@@ -1613,7 +1612,10 @@ local function StartAutoMaterial()
                 -- Equipar arma del tipo seleccionado
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
-                if distance > Settings.AttackDistance + 2 then
+                if distance > 150 then
+                    -- Distancia larga: usar teleport
+                    TeleportToLocation(mob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                elseif distance > Settings.AttackDistance + 2 then
                     local direction = (mob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                     HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
@@ -1714,7 +1716,10 @@ local function StartAutoBones()
                 
                 local distance = (HumanoidRootPart.Position - boneMob.HumanoidRootPart.Position).Magnitude
                 
-                if distance > Settings.AttackDistance + 2 then
+                if distance > 150 then
+                    -- Distancia larga: usar teleport
+                    TeleportToLocation(boneMob.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                elseif distance > Settings.AttackDistance + 2 then
                     local direction = (boneMob.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                     HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
@@ -1903,15 +1908,15 @@ local function StartAutoFruitCollect()
             if fruit and fruit:FindFirstChild("Handle") then
                 local distance = (HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
                 
-                if distance > 5 then
-                    local direction = (fruit.Handle.Position - HumanoidRootPart.Position).Unit
-                    HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 2
+                if distance > 10 then
+                    -- Usar TweenService para atravesar paredes
+                    TeleportToLocation(fruit.Handle.CFrame)
                 else
-                    -- Intentar recoger la fruta
-                    HumanoidRootPart.CFrame = fruit.Handle.CFrame
-                    wait(0.3)
+                    -- Posicionarse encima de la fruta
+                    HumanoidRootPart.CFrame = fruit.Handle.CFrame + Vector3.new(0, 3, 0)
+                    wait(0.5)
                     
-                    -- Store en inventario si es posible
+                    -- Store en inventario
                     local Remote = GetBloxFruitsRemote()
                     if Remote then
                         pcall(function()
@@ -2316,7 +2321,11 @@ local function StartAutoFarm()
                 EquipWeaponByType(Settings.SelectedWeaponType)
                 
                 -- Mover hacia el enemigo
-                if distance > Settings.AttackDistance + 2 then
+                if distance > 150 then
+                    -- Distancia larga: usar teleport
+                    TeleportToLocation(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                elseif distance > Settings.AttackDistance + 2 then
+                    -- Distancia media: volar
                     local direction = (enemy.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit
                     HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + direction * 1.5
                 else
