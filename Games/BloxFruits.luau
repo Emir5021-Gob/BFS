@@ -14,14 +14,26 @@ local function Notify(title, text, duration)
     end)
 end
 
-Notify("BFS v4.2", "Commit: ed636a0", 5)
+Notify("BFS v4.2", "Commit: e91bc27", 5)
 Notify("BFS DEBUG", "Script iniciado", 2)
 
+print("========================================")
+print("🚀 BFS Scripts v4.2 INICIANDO...")
+print("========================================")
+
 -- Protección y verificaciones
+print("⏳ Esperando carga del juego...")
 repeat wait() until game:IsLoaded()
+print("✅ Juego cargado")
+
 repeat wait() until game.Players
+print("✅ Players service listo")
+
 repeat wait() until game.Players.LocalPlayer
+print("✅ LocalPlayer detectado")
+
 repeat wait() until game.Players.LocalPlayer.Character
+print("✅ Character spawneado")
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,36 +42,63 @@ local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 
+print("✅ Servicios obtenidos")
+
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
+print("✅ Referencias de jugador establecidas")
+
 -- Remote correcto de Blox Fruits
-local RemotesFolder = ReplicatedStorage:WaitForChild("Remotes")
-local CommF_ = RemotesFolder:WaitForChild("CommF_")
+print("🔄 Buscando CommF_ remote...")
+local RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 10)
+if not RemotesFolder then
+    warn("❌ No se encontró RemotesFolder")
+    Notify("ERROR", "RemotesFolder no encontrado", 10)
+    return
+end
+
+local CommF_ = RemotesFolder:WaitForChild("CommF_", 10)
+if not CommF_ then
+    warn("❌ No se encontró CommF_ remote")
+    Notify("ERROR", "CommF_ remote no encontrado", 10)
+    return
+end
+print("✅ CommF_ remote obtenido")
 
 -- Cargar base de datos de quests
+print("🔄 Cargando QuestsDatabase...")
 local QuestsDatabase = loadstring(game:HttpGet("https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Utils/BloxFruits/GameModules/Quests.lua"))()
 
 if not QuestsDatabase or type(QuestsDatabase) ~= "table" then
     warn("⚠️ Error al cargar QuestsDatabase, usando fallback")
+    Notify("WARNING", "QuestsDatabase no cargado", 5)
     QuestsDatabase = {} -- Fallback vacío para evitar crashes
 else
-    print("✅ QuestsDatabase cargado:", #QuestsDatabase, "quest givers")
+    local count = 0
+    for _ in pairs(QuestsDatabase) do count = count + 1 end
+    print("✅ QuestsDatabase cargado:", count, "quest givers")
+    Notify("SUCCESS", "QuestsDatabase: " .. count .. " givers", 3)
 end
 
 -- Extender SimulationRadius para renderizar enemigos lejanos
+print("🔄 Extendiendo SimulationRadius...")
 pcall(function()
     local lp = Player
     local sethidden = sethiddenproperty or set_hidden_property or set_hidden_prop
     if sethidden then
         sethidden(lp, "SimulationRadius", 9e9)
         sethidden(lp, "MaxSimulationRadius", 9e9)
+        print("✅ SimulationRadius extendido")
+    else
+        print("⚠️ sethiddenproperty no disponible")
     end
 end)
 
 Notify("BFS DEBUG", "Servicios cargados", 2)
+print("========================================")
 
 -- Detectar Sea actual
 local function GetCurrentSea()
