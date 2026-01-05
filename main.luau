@@ -3,14 +3,24 @@
     Loader Principal
 ]]
 
+-- Notificación inmediata
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "BFS Loader",
+        Text = "Iniciando carga...",
+        Duration = 3,
+    })
+end)
+
 -- Configuración
 local REPO = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Games/"
 
--- IDs de juego soportados
+-- IDs de juego soportados (incluye BETA)
 local GAMES = {
     [2753915549] = "BloxFruits.luau", -- Sea 1
     [4442272183] = "BloxFruits.luau", -- Sea 2
     [7449423635] = "BloxFruits.luau", -- Sea 3
+    [13498489180] = "BloxFruits.luau", -- Blox Fruits BETA
 }
 
 -- Detectar juego
@@ -30,6 +40,14 @@ if not scriptName then
     warn("  • 2753915549 - Blox Fruits Sea 1")
     warn("  • 4442272183 - Blox Fruits Sea 2")
     warn("  • 7449423635 - Blox Fruits Sea 3")
+    warn("  • 13498489180 - Blox Fruits BETA")
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "❌ Juego no soportado",
+            Text = "PlaceId: " .. tostring(placeId),
+            Duration = 10,
+        })
+    end)
     return
 end
 
@@ -52,10 +70,26 @@ end
 
 if not code or code == "" then
     warn("❌ ERROR: Script vacío o no encontrado")
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "❌ Error Descarga",
+            Text = "Script vacío",
+            Duration = 10,
+        })
+    end)
     return
 end
 
 print("✅ Descargado:", #code, "bytes")
+
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "✅ Descargado",
+        Text = #code .. " bytes",
+        Duration = 2,
+    })
+end)
+
 print("⚙️ Compilando...")
 
 -- Compilar el script
@@ -70,10 +104,26 @@ if not func then
         table.insert(lines, line)
     end
     warn("Total de líneas:", #lines)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "❌ Error Compilación",
+            Text = tostring(compileError):sub(1, 50),
+            Duration = 15,
+        })
+    end)
     return
 end
 
 print("✅ Compilación exitosa")
+
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "✅ Compilado",
+        Text = "Ejecutando...",
+        Duration = 2,
+    })
+end)
+
 print("🎮 Ejecutando script...")
 
 -- Ejecutar el script CON MANEJO DE ERRORES
