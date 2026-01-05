@@ -108,12 +108,16 @@ local function GetNearestChest()
     local HRP = Character:FindFirstChild("HumanoidRootPart")
     if not HRP then return nil end
     
-    for _, chest in pairs(workspace:GetChildren()) do
-        if chest.Name:find("Chest") and chest:FindFirstChild("Root") then
-            local distance = (HRP.Position - chest.Root.Position).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                nearestChest = chest
+    -- Buscar en workspace
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and (obj.Name == "Chest1" or obj.Name == "Chest2" or obj.Name == "Chest3" or obj.Name:find("Chest")) then
+            local chestRoot = obj:FindFirstChild("Root") or obj:FindFirstChild("HumanoidRootPart") or obj.PrimaryPart
+            if chestRoot then
+                local distance = (HRP.Position - chestRoot.Position).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestChest = obj
+                end
             end
         end
     end
@@ -123,28 +127,41 @@ end
 
 -- Auto Chest
 local ChestConnection
+local lastChestTime = 0
 local function StartAutoChest()
     if ChestConnection then return end
     
-    ChestConnection = game:GetService("RunService").Heartbeat:Connect(function()
-        if not Settings.AutoChest then return end
-        
-        local chest = GetNearestChest()
-        if chest and chest:FindFirstChild("Root") then
-            local Character = Player.Character
-            if Character and Character:FindFirstChild("HumanoidRootPart") then
-                Character.HumanoidRootPart.CFrame = chest.Root.CFrame
-                wait(0.5)
+    ChestConnection = task.spawn(function()
+        while Settings.AutoChest do
+            local success, result = pcall(function()
+                local chest = GetNearestChest()
+                if chest then
+                    local chestRoot = chest:FindFirstChild("Root") or chest:FindFirstChild("HumanoidRootPart") or chest.PrimaryPart
+                    if chestRoot and tick() - lastChestTime > 1 then
+                        local Character = Player.Character
+                        if Character and Character:FindFirstChild("HumanoidRootPart") then
+                            Character.HumanoidRootPart.CFrame = chestRoot.CFrame
+                            lastChestTime = tick()
+                            task.wait(1)
+                        end
+                    end
+                else
+                    task.wait(0.5)
+                end
+            end)
+            
+            if not success then
+                task.wait(1)
             end
+            
+            task.wait(0.1)
         end
     end)
 end
 
 local function StopAutoChest()
-    if ChestConnection then
-        ChestConnection:Disconnect()
-        ChestConnection = nil
-    end
+    Settings.AutoChest = false
+    ChestConnection = nil
 end
 
 -- Crear UI
