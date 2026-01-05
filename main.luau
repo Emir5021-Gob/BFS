@@ -24,21 +24,36 @@ local GAMES = {
     -- Blox Fruits BETA/Test
     [13498489180] = "BloxFruits.luau", -- BETA
     [15541073133] = "BloxFruits.luau", -- BETA 2
-    [17078241790] = "BloxFruits.luau", -- Private Server variant
-    -- Servidores Privados / VIP
-    [100117331123089] = "BloxFruits.luau", -- Sea 3 Private
 }
 
 -- Detectar juego
 local placeId = game.PlaceId
 local scriptName = GAMES[placeId]
 
--- Si no está en la lista pero el nombre del juego contiene "Blox Fruits", usarlo de todos modos
+-- Si no está en la lista, detectar automáticamente si es Blox Fruits
 if not scriptName then
-    local gameName = game:GetService("MarketplaceService"):GetProductInfo(placeId).Name or ""
-    if gameName:lower():find("blox") and gameName:lower():find("fruit") then
+    -- Método 1: Verificar por elementos del juego
+    local isBloxFruits = false
+    pcall(function()
+        local rs = game:GetService("ReplicatedStorage")
+        if rs:FindFirstChild("Remotes") and rs.Remotes:FindFirstChild("CommF_") then
+            isBloxFruits = true
+        end
+    end)
+    
+    -- Método 2: Verificar por nombre del juego
+    if not isBloxFruits then
+        pcall(function()
+            local gameName = game:GetService("MarketplaceService"):GetProductInfo(placeId).Name or ""
+            if gameName:lower():find("blox") and gameName:lower():find("fruit") then
+                isBloxFruits = true
+            end
+        end)
+    end
+    
+    if isBloxFruits then
         scriptName = "BloxFruits.luau"
-        print("✅ Detectado como Blox Fruits por nombre:", gameName)
+        print("✅ Detectado como Blox Fruits automáticamente")
     end
 end
 
