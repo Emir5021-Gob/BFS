@@ -84,38 +84,55 @@ end
 pcall(function()
     game.StarterGui:SetCore("SendNotification", {
         Title = "🚀 BFS Scripts";
-        Text = "Cargando " .. gameInfo.Name;
-        Duration = 3;
+        Text = "Descargando script...";
+        Duration = 2;
     })
 end)
 
+wait(1)
+
 -- Cargar y ejecutar el script del juego
-local GameScript = LoadScript(gameInfo.Script)
-if GameScript then
-    local success, err = pcall(GameScript)
-    if not success then
-        pcall(function()
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "❌ Error de Ejecución";
-                Text = "Error al cargar el script";
-                Duration = 5;
-            })
-        end)
-    else
-        pcall(function()
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "✅ Script Cargado";
-                Text = "BFS Hub v4.2 iniciado correctamente";
-                Duration = 3;
-            })
-        end)
-    end
-else
+local GameScript, loadError = LoadScript(gameInfo.Script)
+
+if not GameScript then
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "❌ Error de Descarga";
-            Text = "No se pudo descargar el script";
+            Text = "No se pudo descargar el script del servidor";
             Duration = 5;
+        })
+    end)
+    return
+end
+
+pcall(function()
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "⚙️ Iniciando...";
+        Text = "Ejecutando BFS Hub";
+        Duration = 2;
+    })
+end)
+
+wait(0.5)
+
+local success, err = pcall(function()
+    GameScript()
+end)
+
+if not success then
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "❌ Error al Ejecutar";
+            Text = "Verifica tu conexión a internet";
+            Duration = 5;
+        })
+    end)
+else
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "✅ Hub Cargado";
+            Text = "BFS v4.2 iniciado correctamente";
+            Duration = 3;
         })
     end)
 end
