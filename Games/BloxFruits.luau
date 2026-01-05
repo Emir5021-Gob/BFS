@@ -2,10 +2,16 @@
 -- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
 
+print("🔵 DEBUG: Script iniciado - Línea 1")
+
 -- Protección y verificaciones
+print("🔵 DEBUG: Esperando game:IsLoaded()...")
 repeat wait() until game:IsLoaded()
+print("🔵 DEBUG: Esperando Players...")
 repeat wait() until game.Players
+print("🔵 DEBUG: Esperando LocalPlayer...")
 repeat wait() until game.Players.LocalPlayer
+print("🔵 DEBUG: Esperando Character...")
 repeat wait() until game.Players.LocalPlayer.Character
 
 local Players = game:GetService("Players")
@@ -15,10 +21,15 @@ local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 
+print("🔵 DEBUG: Obteniendo Player...")
 local Player = Players.LocalPlayer
+print("🔵 DEBUG: Player:", Player.Name)
 local Character = Player.Character or Player.CharacterAdded:Wait()
+print("🔵 DEBUG: Character obtenido")
 local Humanoid = Character:WaitForChild("Humanoid")
+print("🔵 DEBUG: Humanoid obtenido")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+print("🔵 DEBUG: HumanoidRootPart obtenido")
 
 print("✅ BFS Hub v4.2 - Servicios cargados")
 print("✅ Personaje detectado:", Player.Name)
@@ -2430,21 +2441,28 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function(time)
 end)
 
 print("🎨 Creando interfaz de usuario...")
+print("🔵 DEBUG: Antes de CreateUI()")
 
 -- Variables globales para UI (necesarias para las funciones Show*Category)
 local GUI, Sidebar, ContentArea
 
 -- Crear UI con protección de errores
+print("🔵 DEBUG: Llamando CreateUI() con pcall...")
 local success, result1, result2, result3 = pcall(CreateUI)
+print("🔵 DEBUG: pcall terminó. success=", success)
 if not success then
     warn("❌ Error al crear UI:", result1)
     error("No se pudo crear la interfaz")
     return
 end
 
+print("🔵 DEBUG: Asignando resultados...")
 GUI = result1
+print("🔵 DEBUG: GUI=", GUI)
 Sidebar = result2
+print("🔵 DEBUG: Sidebar=", Sidebar)
 ContentArea = result3
+print("🔵 DEBUG: ContentArea=", ContentArea)
 
 if not GUI or not Sidebar or not ContentArea then
     warn("❌ Error: UI, Sidebar o ContentArea es nil")
@@ -2452,10 +2470,15 @@ if not GUI or not Sidebar or not ContentArea then
     return
 end
 
+print("🔵 DEBUG: Insertando GUI en PlayerGui...")
 -- Insertar UI en PlayerGui
 GUI.Parent = Player:WaitForChild("PlayerGui")
+print("🔵 DEBUG: GUI insertado en PlayerGui")
 
 print("✅ UI creada exitosamente")
+print("🔵 DEBUG: Verificando si GUI está visible...")
+print("🔵 DEBUG: GUI.Parent=", GUI.Parent)
+print("🔵 DEBUG: GUI visible en PlayerGui")
 
 -- FUNCIONES PARA CREAR CADA CATEGORÍA
 
