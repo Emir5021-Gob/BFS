@@ -169,8 +169,8 @@ local QuestData = {
     LastQuestCheck = 0
 }
 
--- SISTEMA DE QUESTS ELIMINADO - Ahora usa QuestsDatabase.lua
--- local QuestList = {
+--[[ SISTEMA DE QUESTS ELIMINADO - Ahora usa QuestsDatabase.lua
+local QuestList = {
     -- SEA 1 (Old World) - Nivel 1-700
     [1] = {
         {Level = 1, QuestGiver = "BanditQuest1", Enemy = "Bandit", Location = CFrame.new(1059, 16, 1544)},
@@ -274,6 +274,7 @@ local QuestData = {
         {Level = 2800, QuestGiver = "FinalQuest", Enemy = "Elite Warrior", Location = CFrame.new(-5000, 314, -3000)},
     }
 }
+--]]
 
 -- Lista de Bosses por Sea
 local BossList = {
