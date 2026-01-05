@@ -2517,17 +2517,6 @@ local function ShowFarmingCategory()
     CreateToggle(ContentArea, "Bring Mob", function(value)
         Settings.BringMob = value
     end)
-        Settings.FastAttack = value
-        if value then
-            StartFastAttack()
-        else
-            StopFastAttack()
-        end
-    end)
-    
-    CreateToggle(ContentArea, "Bring Mob", function(value)
-        Settings.BringMob = value
-    end)
     
     CreateSection(ContentArea, "⚔️ MASTERY")
     
