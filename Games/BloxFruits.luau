@@ -876,15 +876,17 @@ local function UseFruitSkills()
     pcall(function()
         local weapon = GetCurrentWeapon()
         if weapon and weapon:FindFirstChild("RemoteFunctionShoot") then
-            -- Usar habilidades Z, X, C
-            local skills = {"Z", "X", "C"}
-            
-            for _, key in pairs(skills) do
-                VirtualInputManager:SendKeyEvent(true, key, false, game)
-                wait(0.05)
-                VirtualInputManager:SendKeyEvent(false, key, false, game)
-                wait(0.1)
-            end
+            -- Usar habilidades Z, X, C asíncronamente
+            spawn(function()
+                local skills = {"Z", "X", "C"}
+                
+                for _, key in pairs(skills) do
+                    VirtualInputManager:SendKeyEvent(true, key, false, game)
+                    task.wait(0.05)
+                    VirtualInputManager:SendKeyEvent(false, key, false, game)
+                    task.wait(0.1)
+                end
+            end)
         end
     end)
 end
@@ -1412,74 +1414,72 @@ local function StartAutoRaid()
                 if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
                     local currentTime = tick()
                     
-                    -- Evitar spam de inicio de raid (intentar cada 10 segundos)
-                    if currentTime - RaidStartTime > 10 then
+                    -- Evitar spam de inicio de raid (intentar cada 30 segundos para dar tiempo al proceso)
+                    if currentTime - RaidStartTime > 30 then
                         RaidStartTime = currentTime
                         
-                        -- Paso 1: Ir al Mysterious Scientist para comprar chip
-                        pcall(function()
-                            if Settings.CurrentSea == 2 then
-                                -- Second Sea: Hot and Cold
-                                TeleportToLocation(CFrame.new(-6438, 250, -4498))
-                            elseif Settings.CurrentSea == 3 then
-                                -- Third Sea: Castle on the Sea
-                                TeleportToLocation(CFrame.new(-5017, 314, -2823))
-                            end
-                        end)
-                        
-                        wait(1.5)
-                        
-                        -- Paso 2: Comprar chip con fruta física (preferentemente común/uncommon)
-                        local Remote = GetBloxFruitsRemote()
-                        if Remote then
-                            -- Lista de frutas comunes/uncommon baratas para tradear por chip
-                            local cheapFruits = {
-                                "Rocket-Rocket", "Spin-Spin", "Chop-Chop", "Spring-Spring",
-                                "Bomb-Bomb", "Smoke-Smoke", "Spike-Spike", "Falcon-Falcon",
-                                "Kilo-Kilo"
-                            }
-                            
-                            -- Intentar comprar chip con fruta barata
-                            local chipBought = false
-                            for _, fruitName in ipairs(cheapFruits) do
-                                pcall(function()
-                                    local success = Remote:InvokeServer("RaidsNpc", "Select", fruitName)
-                                    if success then
-                                        chipBought = true
-                                        Notify("RAID", "Chip comprado con " .. fruitName, 3)
-                                    end
-                                end)
-                                if chipBought then break end
-                            end
-                            
-                            -- Si no se pudo con fruta, intentar con dinero
-                            if not chipBought then
-                                pcall(function()
-                                    Remote:InvokeServer("RaidsNpc", "Select", "Check")
-                                end)
-                            end
-                            
-                            wait(2)
-                            
-                            -- Paso 3: Ir a la zona de inicio de raids
+                        -- Hacer todo el proceso sin wait() - usar spawn para no bloquear
+                        spawn(function()
+                            -- Paso 1: Ir al Mysterious Scientist para comprar chip
                             pcall(function()
                                 if Settings.CurrentSea == 2 then
-                                    -- Second Sea: Tubos azules en Hot and Cold
-                                    TeleportToLocation(CFrame.new(-6555, 299, -4896))
+                                    -- Second Sea: Hot and Cold
+                                    TeleportToLocation(CFrame.new(-6438, 250, -4498))
                                 elseif Settings.CurrentSea == 3 then
-                                    -- Third Sea: Plataformas amarillas en Castle on the Sea
-                                    TeleportToLocation(CFrame.new(-5411, 314, -2823))
+                                    -- Third Sea: Castle on the Sea
+                                    TeleportToLocation(CFrame.new(-5017, 314, -2823))
                                 end
                             end)
                             
-                            wait(1.5)
+                            task.wait(2)
                             
-                            -- Paso 4: Iniciar la raid
-                            pcall(function()
-                                Remote:InvokeServer("Raids", "Start")
-                                Notify("RAID", "Iniciando raid...", 3)
-                            end)
-                        end
+                            -- Paso 2: Comprar chip con fruta física
+                            local Remote = GetBloxFruitsRemote()
+                            if Remote then
+                                local cheapFruits = {
+                                    "Rocket-Rocket", "Spin-Spin", "Chop-Chop", "Spring-Spring",
+                                    "Bomb-Bomb", "Smoke-Smoke", "Spike-Spike", "Falcon-Falcon",
+                                    "Kilo-Kilo"
+                                }
+                                
+                                local chipBought = false
+                                for _, fruitName in ipairs(cheapFruits) do
+                                    pcall(function()
+                                        local success = Remote:InvokeServer("RaidsNpc", "Select", fruitName)
+                                        if success then
+                                            chipBought = true
+                                            Notify("RAID", "Chip comprado con " .. fruitName, 3)
+                                        end
+                                    end)
+                                    if chipBought then break end
+                                end
+                                
+                                if not chipBought then
+                                    pcall(function()
+                                        Remote:InvokeServer("RaidsNpc", "Select", "Check")
+                                    end)
+                                end
+                                
+                                task.wait(2)
+                                
+                                -- Paso 3: Ir a la zona de inicio
+                                pcall(function()
+                                    if Settings.CurrentSea == 2 then
+                                        TeleportToLocation(CFrame.new(-6555, 299, -4896))
+                                    elseif Settings.CurrentSea == 3 then
+                                        TeleportToLocation(CFrame.new(-5411, 314, -2823))
+                                    end
+                                end)
+                                
+                                task.wait(2)
+                                
+                                -- Paso 4: Iniciar raid
+                                pcall(function()
+                                    Remote:InvokeServer("Raids", "Start")
+                                    Notify("RAID", "Iniciando raid...", 3)
+                                end)
+                            end
+                        end)
                     end
                 end
             end
@@ -1528,31 +1528,32 @@ local function StartAutoFruitMastery()
                         
                         -- Usar habilidades Z, X, C, V si UseFruitSkills está activado
                         if Settings.UseFruitSkills then
-                            local VIM = game:GetService("VirtualInputManager")
-                            
-                            -- Skill Z
-                            VIM:SendKeyEvent(true, "Z", false, game)
-                            wait(0.1)
-                            VIM:SendKeyEvent(false, "Z", false, game)
-                            wait(0.8)
-                            
-                            -- Skill X
-                            VIM:SendKeyEvent(true, "X", false, game)
-                            wait(0.1)
-                            VIM:SendKeyEvent(false, "X", false, game)
-                            wait(0.8)
-                            
-                            -- Skill C
-                            VIM:SendKeyEvent(true, "C", false, game)
-                            wait(0.1)
-                            VIM:SendKeyEvent(false, "C", false, game)
-                            wait(0.8)
-                            
-                            -- Skill V (si existe)
-                            VIM:SendKeyEvent(true, "V", false, game)
-                            wait(0.1)
-                            VIM:SendKeyEvent(false, "V", false, game)
-                            wait(1)
+                            spawn(function()
+                                local VIM = game:GetService("VirtualInputManager")
+                                
+                                -- Skill Z
+                                VIM:SendKeyEvent(true, "Z", false, game)
+                                task.wait(0.1)
+                                VIM:SendKeyEvent(false, "Z", false, game)
+                                task.wait(0.8)
+                                
+                                -- Skill X
+                                VIM:SendKeyEvent(true, "X", false, game)
+                                task.wait(0.1)
+                                VIM:SendKeyEvent(false, "X", false, game)
+                                task.wait(0.8)
+                                
+                                -- Skill C
+                                VIM:SendKeyEvent(true, "C", false, game)
+                                task.wait(0.1)
+                                VIM:SendKeyEvent(false, "C", false, game)
+                                task.wait(0.8)
+                                
+                                -- Skill V (si existe)
+                                VIM:SendKeyEvent(true, "V", false, game)
+                                task.wait(0.1)
+                                VIM:SendKeyEvent(false, "V", false, game)
+                            end)
                         else
                             -- Solo clicks
                             fruitTool:Activate()
@@ -1933,6 +1934,10 @@ end
 local FruitCollectConnection
 local function StartAutoFruitCollect()
     if FruitCollectConnection then return end
+local FruitCollectConnection
+local LastFruitStore = 0
+local function StartAutoFruitCollect()
+    if FruitCollectConnection then return end
     
     FruitCollectConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoFruitCollect then return end
@@ -1942,27 +1947,27 @@ local function StartAutoFruitCollect()
             
             if fruit and fruit:FindFirstChild("Handle") then
                 local distance = (HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
+                local currentTime = tick()
                 
                 -- Crear posición segura (siempre por encima, mínimo Y=50)
                 local targetY = math.max(fruit.Handle.Position.Y + 20, 50)
                 local safePosition = CFrame.new(fruit.Handle.Position.X, targetY, fruit.Handle.Position.Z)
                 
                 if distance > 10 then
-                    -- Usar TweenService para atravesar paredes manteniendo altura
+                    -- Usar TweenService para movimiento suave
                     TeleportToLocation(safePosition)
-                    wait(0.3)
-                end
-                
-                -- Descender suavemente hacia la fruta usando TeleportToLocation
-                TeleportToLocation(fruit.Handle.CFrame + Vector3.new(0, 5, 0))
-                wait(0.5)
-                
-                -- Store en inventario
-                local Remote = GetBloxFruitsRemote()
-                if Remote then
-                    pcall(function()
-                        Remote:InvokeServer("StoreFruit", fruit.Name)
-                    end)
+                elseif currentTime - LastFruitStore > 3 then
+                    -- Cerca de la fruta y cooldown pasado: intentar recoger
+                    TeleportToLocation(fruit.Handle.CFrame + Vector3.new(0, 5, 0))
+                    
+                    -- Store en inventario
+                    local Remote = GetBloxFruitsRemote()
+                    if Remote then
+                        pcall(function()
+                            Remote:InvokeServer("StoreFruit", fruit.Name)
+                            LastFruitStore = currentTime
+                        end)
+                    end
                 end
             end
         end)
@@ -2008,9 +2013,17 @@ end
 
 -- 3. TELEPORTS
 
+-- Variable para trackear tween activo
+local CurrentTween = nil
+
 local function TeleportToLocation(cframe)
     pcall(function()
-        -- Teleport con tween para ser más seguro
+        -- Cancelar tween anterior si existe
+        if CurrentTween then
+            CurrentTween:Cancel()
+            CurrentTween = nil
+        end
+        
         local distance = (HumanoidRootPart.Position - cframe.Position).Magnitude
         
         if distance < 100 then
@@ -2018,8 +2031,16 @@ local function TeleportToLocation(cframe)
         else
             local tweenInfo = TweenInfo.new(distance / Settings.TweenSpeed, Enum.EasingStyle.Linear)
             local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = cframe})
+            CurrentTween = tween
+            
             tween:Play()
-            tween.Completed:Wait()
+            
+            -- NO usar :Wait() para no bloquear el Heartbeat
+            tween.Completed:Connect(function()
+                if CurrentTween == tween then
+                    CurrentTween = nil
+                end
+            end)
         end
     end)
 end
@@ -2028,29 +2049,23 @@ end
 
 -- Auto Observation Haki
 local ObservationConnection
+local ObservationLastUse = 0
 local function StartAutoObservationHaki()
     if ObservationConnection then return end
     
     ObservationConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoObservationHaki then return end
         
+        local currentTime = tick()
+        if currentTime - ObservationLastUse < 5 then return end -- Cooldown de 5 segundos
+        
         pcall(function()
             local Remote = GetBloxFruitsRemote()
             if Remote then
-                -- Activar Observation Haki
+                -- Activar Observation Haki (solo cada 5 segundos)
                 Remote:InvokeServer("KenTalk", "Buy")
                 Remote:InvokeServer("KenTalk", "Start")
-                
-                -- Esquivar ataques automáticamente
-                if Player.Character:FindFirstChild("Humanoid") then
-                    local enemy = GetNearestEnemy()
-                    if enemy and (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude < 50 then
-                        -- Activar dodge
-                        game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
-                        wait(0.1)
-                        game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
-                    end
-                end
+                ObservationLastUse = currentTime
             end
         end)
     end)
@@ -2065,24 +2080,22 @@ end
 
 -- Auto Armament Haki
 local ArmamentConnection
+local ArmamentLastUse = 0
 local function StartAutoArmamentHaki()
     if ArmamentConnection then return end
     
     ArmamentConnection = RunService.Heartbeat:Connect(function()
         if not Settings.AutoArmamentHaki then return end
         
+        local currentTime = tick()
+        if currentTime - ArmamentLastUse < 10 then return end -- Cooldown de 10 segundos
+        
         pcall(function()
             local Remote = GetBloxFruitsRemote()
             if Remote then
-                -- Comprar y activar Armament Haki
+                -- Comprar Armament Haki (solo una vez cada 10 segundos)
                 Remote:InvokeServer("BuyHaki", "Buso")
-                
-                -- Mantener Buso activo
-                if not Player.Character:FindFirstChild("HasBuso") then
-                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "J", false, game)
-                    wait(0.1)
-                    game:GetService("VirtualInputManager"):SendKeyEvent(false, "J", false, game)
-                end
+                ArmamentLastUse = currentTime
             end
         end)
     end)
@@ -2303,24 +2316,27 @@ local function TakeQuest()
     QuestData.QuestMob = selectedQuest.Enemy
     QuestData.QuestLevel = selectedQuest.Level
     
-    -- Ir a NPC de quest con TeleportToLocation
-    pcall(function()
-        TeleportToLocation(selectedQuest.Location)
+    -- Hacer proceso asíncrono para no bloquear
+    spawn(function()
+        -- Ir a NPC de quest con TeleportToLocation
+        pcall(function()
+            TeleportToLocation(selectedQuest.Location)
+        end)
+        task.wait(0.5)
+        
+        -- Tomar quest via remote
+        local success = pcall(function()
+            Remote:InvokeServer("StartQuest", selectedQuest.QuestGiver, 1)
+        end)
+        
+        if success then
+            print("✅ Quest tomada:", selectedQuest.Enemy, "- Nivel", selectedQuest.Level)
+        else
+            warn("⚠️ Error al tomar quest")
+        end
     end)
-    wait(0.5)
     
-    -- Tomar quest via remote
-    local success = pcall(function()
-        Remote:InvokeServer("StartQuest", selectedQuest.QuestGiver, 1)
-    end)
-    
-    if success then
-        print("✅ Quest tomada:", selectedQuest.Enemy, "- Nivel", selectedQuest.Level)
-    else
-        warn("⚠️ Error al tomar quest")
-    end
-    
-    return success
+    return true
 end
 
 -- BringMob (reducido para seguridad)
