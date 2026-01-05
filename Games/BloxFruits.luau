@@ -50,6 +50,9 @@ local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
 print(" Referencias de jugador establecidas")
 
+-- Bloque wrapper para balancear estructura
+do
+
 -- Remote correcto de Blox Fruits (opcional, algunas funciones lo necesitan)
 print(" Buscando CommF_ remote...")
 local RemotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
