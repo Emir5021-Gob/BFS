@@ -2456,11 +2456,6 @@ if not success then
 end
 
 Notify("BFS DEBUG", "CreateUI exitoso", 2)
-if not success then
-    warn("❌ Error al crear UI:", result1)
-    error("No se pudo crear la interfaz")
-    return
-end
 
 GUI = result1
 Sidebar = result2
@@ -2477,7 +2472,7 @@ Notify("BFS DEBUG", "Insertando en PlayerGui", 2)
 -- Insertar UI en PlayerGui
 GUI.Parent = Player:WaitForChild("PlayerGui")
 
-Notify("BFS HUB", "✅ Cargado exitosamente!", 5)
+Notify("BFS DEBUG", "Creando botones...", 2)
 
 -- FUNCIONES PARA CREAR CADA CATEGORÍA
 
@@ -2840,6 +2835,8 @@ CreateCategoryButton(Sidebar, "⚙️", "Settings", ShowSettingsCategory)
 
 -- Mostrar categoría inicial (Farming)
 ShowFarmingCategory()
+
+Notify("BFS HUB", "✅ Cargado exitosamente!", 5)
 
 -- Secciones ANTIGUAS ELIMINADAS - Ahora se manejan por categorías
 --[[
