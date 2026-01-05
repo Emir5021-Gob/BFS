@@ -2274,20 +2274,6 @@ local function GetQuestEnemy(enemyName)
     
     return nearestEnemy
 end
-                        end
-                    end
-                end
-            end
-        end
-    end)
-    
-    -- Si no encuentra el enemigo de la quest, devolver cualquier enemigo cercano
-    if not nearestEnemy then
-        return GetNearestEnemy()
-    end
-    
-    return nearestEnemy
-end
 
 -- Tomar quest
 local function TakeQuest()
