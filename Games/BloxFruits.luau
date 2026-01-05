@@ -1,6 +1,7 @@
 -- BFS Premium Hub v4.2 - ULTIMATE EDITION
 -- Optimizado para móvil con funcionalidades completas
 -- Incluye: Materials, Bones, Fruits, Teleports, Haki Training, ESP
+-- VERSION: ed636a0 - 04/01/2026
 
 -- Función para notificaciones móvil
 local function Notify(title, text, duration)
@@ -13,6 +14,7 @@ local function Notify(title, text, duration)
     end)
 end
 
+Notify("BFS v4.2", "Commit: ed636a0", 5)
 Notify("BFS DEBUG", "Script iniciado", 2)
 
 -- Protección y verificaciones
