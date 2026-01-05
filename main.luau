@@ -18,9 +18,9 @@ local REPO = "https://raw.githubusercontent.com/Emir5021-Gob/BFS/main/Games/"
 -- IDs de juego soportados
 local GAMES = {
     -- Blox Fruits Official
-    [2753915549] = "BloxFruits.luau", -- Sea 1 (Old World)
-    [4442272183] = "BloxFruits.luau", -- Sea 2 (New World)  
-    [7449423635] = "BloxFruits.luau", -- Sea 3 (Third Sea)
+    [2753915549] = "BloxFruits_minimal.lua", -- Sea 1 (Old World)
+    [4442272183] = "BloxFruits_minimal.lua", -- Sea 2 (New World)  
+    [7449423635] = "BloxFruits_minimal.lua", -- Sea 3 (Third Sea)
 }
 
 -- Detectar juego
@@ -52,7 +52,7 @@ if not scriptName then
     end
     
     if isBloxFruits then
-        scriptName = "BloxFruits.luau"
+        scriptName = "BloxFruits_minimal.lua"
         print("[BFS] Detectado como Blox Fruits automaticamente")
     end
 end
