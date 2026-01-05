@@ -401,8 +401,8 @@ local function CreateUI()
     -- Main Frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 420, 0, 450)
-    MainFrame.Position = UDim2.new(0.5, -210, 0.5, -225)
+    MainFrame.Size = UDim2.new(0, 340, 0, 360)
+    MainFrame.Position = UDim2.new(0.5, -170, 0.5, -180)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
@@ -416,7 +416,7 @@ local function CreateUI()
     -- Header
     local Header = Instance.new("Frame")
     Header.Name = "Header"
-    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.Size = UDim2.new(1, 0, 0, 40)
     Header.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     Header.BorderSizePixel = 0
     Header.Parent = MainFrame
@@ -434,32 +434,32 @@ local function CreateUI()
     
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
-    Title.Size = UDim2.new(1, -100, 1, 0)
-    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.Size = UDim2.new(1, -80, 1, 0)
+    Title.Position = UDim2.new(0, 10, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Font = Enum.Font.GothamBold
     Title.Text = "🎮 BFS Hub v4.2"
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 18
+    Title.TextSize = 14
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Header
     
     local SubTitle = Instance.new("TextLabel")
     SubTitle.Name = "SubTitle"
-    SubTitle.Size = UDim2.new(1, -100, 0, 15)
-    SubTitle.Position = UDim2.new(0, 15, 0, 28)
+    SubTitle.Size = UDim2.new(1, -80, 0, 12)
+    SubTitle.Position = UDim2.new(0, 10, 0, 22)
     SubTitle.BackgroundTransparency = 1
     SubTitle.Font = Enum.Font.Gotham
     SubTitle.Text = "Premium Edition"
     SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
-    SubTitle.TextSize = 11
+    SubTitle.TextSize = 9
     SubTitle.TextXAlignment = Enum.TextXAlignment.Left
     SubTitle.Parent = Header
     
     local MinimizeBtn = Instance.new("TextButton")
     MinimizeBtn.Name = "MinimizeBtn"
-    MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
-    MinimizeBtn.Position = UDim2.new(1, -43, 0, 7)
+    MinimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+    MinimizeBtn.Position = UDim2.new(1, -33, 0, 6)
     MinimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     MinimizeBtn.BorderSizePixel = 0
     MinimizeBtn.Font = Enum.Font.GothamBold
@@ -475,8 +475,8 @@ local function CreateUI()
     -- Sidebar
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 120, 1, -60)
-    Sidebar.Position = UDim2.new(0, 10, 0, 55)
+    Sidebar.Size = UDim2.new(0, 95, 1, -48)
+    Sidebar.Position = UDim2.new(0, 8, 0, 45)
     Sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = MainFrame
@@ -508,8 +508,8 @@ local function CreateUI()
     -- Content Area
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
-    ContentArea.Size = UDim2.new(0, 275, 1, -60)
-    ContentArea.Position = UDim2.new(0, 135, 0, 55)
+    ContentArea.Size = UDim2.new(0, 230, 1, -48)
+    ContentArea.Position = UDim2.new(0, 108, 0, 45)
     ContentArea.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     ContentArea.BorderSizePixel = 0
     ContentArea.Parent = MainFrame
@@ -543,12 +543,12 @@ local function CreateUI()
     MinimizeBtn.MouseButton1Click:Connect(function()
         Minimized = not Minimized
         if Minimized then
-            MainFrame:TweenSize(UDim2.new(0, 420, 0, 50), "Out", "Quad", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 340, 0, 40), "Out", "Quad", 0.3, true)
             MinimizeBtn.Text = "+"
             Sidebar.Visible = false
             ContentArea.Visible = false
         else
-            MainFrame:TweenSize(UDim2.new(0, 420, 0, 450), "Out", "Quad", 0.3, true)
+            MainFrame:TweenSize(UDim2.new(0, 340, 0, 360), "Out", "Quad", 0.3, true)
             MinimizeBtn.Text = "-"
             Sidebar.Visible = true
             ContentArea.Visible = true
@@ -564,13 +564,13 @@ end
 local function CreateCategoryButton(parent, icon, text, callback)
     local CategoryBtn = Instance.new("TextButton")
     CategoryBtn.Name = text
-    CategoryBtn.Size = UDim2.new(1, 0, 0, 42)
+    CategoryBtn.Size = UDim2.new(1, 0, 0, 34)
     CategoryBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     CategoryBtn.BorderSizePixel = 0
     CategoryBtn.Font = Enum.Font.GothamBold
     CategoryBtn.Text = icon .. " " .. text
     CategoryBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-    CategoryBtn.TextSize = 12
+    CategoryBtn.TextSize = 10
     CategoryBtn.TextXAlignment = Enum.TextXAlignment.Left
     CategoryBtn.Parent = parent
     
@@ -613,7 +613,7 @@ end
 -- Función para crear Toggle
 local function CreateToggle(parent, text, callback)
     local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
+    ToggleFrame.Size = UDim2.new(1, 0, 0, 28)
     ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     ToggleFrame.BorderSizePixel = 0
     ToggleFrame.Parent = parent
@@ -686,12 +686,12 @@ end
 -- Función para crear Section
 local function CreateSection(parent, text)
     local Section = Instance.new("TextLabel")
-    Section.Size = UDim2.new(1, 0, 0, 25)
+    Section.Size = UDim2.new(1, 0, 0, 20)
     Section.BackgroundTransparency = 1
     Section.Font = Enum.Font.GothamBold
     Section.Text = text
     Section.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Section.TextSize = 14
+    Section.TextSize = 11
     Section.TextXAlignment = Enum.TextXAlignment.Left
     Section.Parent = parent
     
@@ -701,7 +701,7 @@ end
 -- Función para crear Dropdown (solo selección, no acción)
 local function CreateDropdown(parent, text, options, callback)
     local DropdownFrame = Instance.new("Frame")
-    DropdownFrame.Size = UDim2.new(1, 0, 0, 35)
+    DropdownFrame.Size = UDim2.new(1, 0, 0, 28)
     DropdownFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     DropdownFrame.BorderSizePixel = 0
     DropdownFrame.Parent = parent
@@ -752,7 +752,7 @@ end
 -- Función para crear un botón de acción
 local function CreateButton(parent, text, callback)
     local ButtonFrame = Instance.new("Frame")
-    ButtonFrame.Size = UDim2.new(1, 0, 0, 35)
+    ButtonFrame.Size = UDim2.new(1, 0, 0, 28)
     ButtonFrame.BackgroundTransparency = 1
     ButtonFrame.BorderSizePixel = 0
     ButtonFrame.Parent = parent
