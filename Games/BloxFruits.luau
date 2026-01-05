@@ -2610,7 +2610,7 @@ Notify("BFS DEBUG", "Creando UI...", 2)
 local GUI, Sidebar, ContentArea
 
 -- Crear UI con protección de errores
-local success, result1, result2, result3 = pcall(CreateUI)
+local success, result1, result2, result3, result4, result5 = pcall(CreateUI)
 
 if not success then
     Notify("ERROR", "CreateUI falló: " .. tostring(result1), 10)
@@ -2621,8 +2621,10 @@ end
 Notify("BFS DEBUG", "CreateUI exitoso", 2)
 
 GUI = result1
-Sidebar = result2
-ContentArea = result3
+Sidebar = result2  -- Este es SidebarScroll en realidad
+ContentArea = result3  -- Este es ContentScroll en realidad
+
+-- No necesitamos los frames contenedores, solo los ScrollingFrames
 
 if not GUI or not Sidebar or not ContentArea then
     Notify("ERROR", "UI es nil", 10)
@@ -2654,11 +2656,11 @@ local function ShowFarmingCategory()
         end
     end)
     
-    CreateDropdown(ContentArea, "Weapon Type:", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
+    CreateDropdown(ContentScroll, "Weapon Type:", {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
         Settings.SelectedWeaponType = selected
     end)
     
-    CreateToggle(ContentArea, "Auto Quest", function(value)
+    CreateToggle(ContentScroll, "Auto Quest", function(value)
         Settings.AutoQuest = value
         if value then
             TakeQuest()
@@ -2668,7 +2670,7 @@ local function ShowFarmingCategory()
         end
     end)
     
-    CreateToggle(ContentArea, "Fast Attack", function(value)
+    CreateToggle(ContentScroll, "Fast Attack", function(value)
         Settings.FastAttack = value
         if value then
             StartFastAttack()
@@ -2677,13 +2679,13 @@ local function ShowFarmingCategory()
         end
     end)
     
-    CreateToggle(ContentArea, "Bring Mob", function(value)
+    CreateToggle(ContentScroll, "Bring Mob", function(value)
         Settings.BringMob = value
     end)
     
-    CreateSection(ContentArea, "⚔️ MASTERY")
+    CreateSection(ContentScroll, "⚔️ MASTERY")
     
-    CreateToggle(ContentArea, "Auto Mastery", function(value)
+    CreateToggle(ContentScroll, "Auto Mastery", function(value)
         Settings.AutoMastery = value
         if value then
             StartAutoMastery()
@@ -2752,7 +2754,7 @@ local function ShowMaterialsCategory()
         end
     end)
     
-    CreateToggle(ContentArea, "Auto Farm Ectoplasm", function(value)
+    CreateToggle(ContentScroll, "Auto Farm Ectoplasm", function(value)
         Settings.AutoEctoplasm = value
         if value then
             StartAutoEctoplasm()
@@ -2831,7 +2833,7 @@ local function ShowBossesCategory()
         end
     end)
     
-    CreateToggle(ContentArea, "Auto Chest", function(value)
+    CreateToggle(ContentScroll, "Auto Chest", function(value)
         Settings.AutoChest = value
         if value then
             StartAutoChest()
@@ -2840,7 +2842,7 @@ local function ShowBossesCategory()
         end
     end)
     
-    CreateToggle(ContentArea, "Auto Mirage Island", function(value)
+    CreateToggle(ContentScroll, "Auto Mirage Island", function(value)
         Settings.AutoMirageIsland = value
         if value then
             StartAutoMirageIsland()
@@ -2909,11 +2911,11 @@ end
 
 -- 7. CATEGORÍA: HAKI
 local function ShowHakiCategory()
-    ClearContent(ContentArea)
+    ClearContent(ContentScroll)
     
-    CreateSection(ContentArea, "🥋 HAKI TRAINING")
+    CreateSection(ContentScroll, "🥋 HAKI TRAINING")
     
-    CreateToggle(ContentArea, "Auto Observation Haki", function(value)
+    CreateToggle(ContentScroll, "Auto Observation Haki", function(value)
         Settings.AutoObservationHaki = value
         if value then
             StartAutoObservationHaki()
@@ -2934,11 +2936,11 @@ end
 
 -- 8. CATEGORÍA: ESP
 local function ShowESPCategory()
-    ClearContent(ContentArea)
+    ClearContent(ContentScroll)
     
-    CreateSection(ContentArea, "👁️ ESP & VISUALS")
+    CreateSection(ContentScroll, "👁️ ESP & VISUALS")
     
-    CreateToggle(ContentArea, "Enable ESP", function(value)
+    CreateToggle(ContentScroll, "Enable ESP", function(value)
         Settings.EnableESP = value
         if value then
             EnableESP()
@@ -2950,17 +2952,17 @@ end
 
 -- 9. CATEGORÍA: SETTINGS
 local function ShowSettingsCategory()
-    ClearContent(ContentArea)
+    ClearContent(ContentScroll)
     
-    CreateSection(ContentArea, "⚙️ GENERAL SETTINGS")
+    CreateSection(ContentScroll, "⚙️ GENERAL SETTINGS")
     
-    CreateToggle(ContentArea, "Safe Mode (60%)", function(value)
+    CreateToggle(ContentScroll, "Safe Mode (60%)", function(value)
         Settings.SafeMode = value
     end)
     
-    CreateSection(ContentArea, "📊 AUTO STATS")
+    CreateSection(ContentScroll, "📊 AUTO STATS")
     
-    CreateToggle(ContentArea, "Enable Auto Stats", function(value)
+    CreateToggle(ContentScroll, "Enable Auto Stats", function(value)
         Settings.AutoStats = value
         if value then
             StartAutoStats()
@@ -2969,7 +2971,7 @@ local function ShowSettingsCategory()
         end
     end)
     
-    CreateDropdown(ContentArea, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
+    CreateDropdown(ContentScroll, "Stat:", {"Melee", "Defense", "Sword", "Gun", "Demon Fruit"}, function(selected)
         Settings.SelectedStat = selected
     end)
 end
