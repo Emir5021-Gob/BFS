@@ -17,38 +17,67 @@ local GAMES = {
 local placeId = game.PlaceId
 local scriptName = GAMES[placeId]
 
+print("=" .. string.rep("=", 50))
+print("🚀 BFS SCRIPTS v4.2 ULTIMATE")
+print("=" .. string.rep("=", 50))
+print("🎮 PlaceId:", placeId)
+
 -- Verificar si el juego es soportado
 if not scriptName then
-    return warn("⚠️ Juego no soportado. PlaceId: " .. tostring(placeId))
+    warn("⚠️ JUEGO NO SOPORTADO")
+    warn("PlaceId actual:", placeId)
+    warn("Juegos soportados:")
+    warn("  • 2753915549 - Blox Fruits Sea 1")
+    warn("  • 4442272183 - Blox Fruits Sea 2")
+    warn("  • 7449423635 - Blox Fruits Sea 3")
+    return
 end
 
--- Descargar y ejecutar
-print("🚀 BFS Scripts - Cargando...")
-print("🎮 PlaceId: " .. tostring(placeId))
+print("✅ Juego detectado:", scriptName)
 
-local success, result = pcall(function()
-    local url = REPO .. scriptName
-    print("📥 Descargando desde: " .. url)
-    
-    local code = game:HttpGet(url, true)
-    
-    if not code or code == "" then
-        error("Script vacío o no encontrado")
-    end
-    
-    print("✅ Descarga completa (" .. #code .. " bytes)")
-    print("⚙️ Ejecutando...")
-    
-    local func, err = loadstring(code)
-    if not func then
-        error("Error de compilación: " .. tostring(err))
-    end
-    
-    return func()
+-- Descargar el script
+local url = REPO .. scriptName
+print("📥 Descargando:", url)
+
+local code
+local downloadSuccess, downloadError = pcall(function()
+    code = game:HttpGet(url, true)
 end)
 
-if not success then
-    warn("❌ Error: " .. tostring(result))
-else
-    print("✅ BFS Scripts cargado exitosamente!")
+if not downloadSuccess then
+    warn("❌ ERROR EN DESCARGA:")
+    warn(tostring(downloadError))
+    return
 end
+
+if not code or code == "" then
+    warn("❌ ERROR: Script vacío o no encontrado")
+    return
+end
+
+print("✅ Descargado:", #code, "bytes")
+print("⚙️ Compilando...")
+
+-- Compilar el script
+local func, compileError = loadstring(code)
+
+if not func then
+    warn("❌ ERROR DE COMPILACIÓN:")
+    warn(tostring(compileError))
+    -- Mostrar primeras líneas con error
+    local lines = {}
+    for line in code:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+    warn("Total de líneas:", #lines)
+    return
+end
+
+print("✅ Compilación exitosa")
+print("🎮 Ejecutando script...")
+
+-- Ejecutar el script SIN PCALL para ver errores reales
+func()
+
+print("✅ BFS Scripts cargado completamente!")
+
