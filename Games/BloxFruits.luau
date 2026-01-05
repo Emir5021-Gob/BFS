@@ -11,14 +11,34 @@ local Player = Players.LocalPlayer
 -- Detectar Sea actual
 local function GetCurrentSea()
     local placeId = game.PlaceId
-    if placeId == 2753915549 then return 1
-    elseif placeId == 4442272183 then return 2
-    elseif placeId == 7449423635 then return 3
+    
+    if placeId == 2753915549 then 
+        return 1  -- Sea 1
+    elseif placeId == 4442272183 then 
+        return 2  -- Sea 2
+    elseif placeId == 7449423635 then 
+        return 3  -- Sea 3
+    else
+        -- Si no detecta, intentar por nivel del jugador
+        local level = Player:FindFirstChild("Data") and Player.Data:FindFirstChild("Level") and Player.Data.Level.Value or 1
+        if level >= 1500 then
+            return 3
+        elseif level >= 700 then
+            return 2
+        else
+            return 1
+        end
     end
-    return 1
 end
 
 local CurrentSea = GetCurrentSea()
+
+-- Notificar el Sea detectado
+game.StarterGui:SetCore("SendNotification", {
+    Title = "🌊 Sea Detectado";
+    Text = "Sea " .. CurrentSea .. " - PlaceId: " .. game.PlaceId;
+    Duration = 5;
+})
 
 -- Variables globales
 local Settings = {
