@@ -1415,34 +1415,72 @@ local function StartAutoRaid()
                 if Settings.CurrentSea == 2 or Settings.CurrentSea == 3 then
                     local currentTime = tick()
                     
-                    -- Evitar spam de inicio de raid (intentar cada 5 segundos)
-                    if currentTime - RaidStartTime > 5 then
+                    -- Evitar spam de inicio de raid (intentar cada 10 segundos)
+                    if currentTime - RaidStartTime > 10 then
                         RaidStartTime = currentTime
                         
-                        -- Teleport al NPC de raids
+                        -- Paso 1: Teleport al Mysterious Scientist para comprar chip
                         pcall(function()
                             if Settings.CurrentSea == 2 then
-                                -- Second Sea: Raid NPC en el barco
+                                -- Second Sea: Hot and Cold
                                 HumanoidRootPart.CFrame = CFrame.new(-6438, 250, -4498)
                             elseif Settings.CurrentSea == 3 then
-                                -- Third Sea: Raid NPC en Tiki Outpost
-                                HumanoidRootPart.CFrame = CFrame.new(-16224, 9, 462)
+                                -- Third Sea: Castle on the Sea
+                                HumanoidRootPart.CFrame = CFrame.new(-5017, 314, -2823)
                             end
                         end)
                         
-                        wait(1)
+                        wait(1.5)
                         
-                        -- Comprar chip e iniciar raid
+                        -- Paso 2: Comprar chip con fruta física (preferentemente común/uncommon)
                         local Remote = GetBloxFruitsRemote()
                         if Remote then
+                            -- Lista de frutas comunes/uncommon baratas para tradear por chip
+                            local cheapFruits = {
+                                "Rocket-Rocket", "Spin-Spin", "Chop-Chop", "Spring-Spring",
+                                "Bomb-Bomb", "Smoke-Smoke", "Spike-Spike", "Falcon-Falcon",
+                                "Kilo-Kilo"
+                            }
+                            
+                            -- Intentar comprar chip con fruta barata
+                            local chipBought = false
+                            for _, fruitName in ipairs(cheapFruits) do
+                                pcall(function()
+                                    local success = Remote:InvokeServer("RaidsNpc", "Select", fruitName)
+                                    if success then
+                                        chipBought = true
+                                        Notify("RAID", "Chip comprado con " .. fruitName, 3)
+                                    end
+                                end)
+                                if chipBought then break end
+                            end
+                            
+                            -- Si no se pudo con fruta, intentar con dinero
+                            if not chipBought then
+                                pcall(function()
+                                    Remote:InvokeServer("RaidsNpc", "Select", "Check")
+                                end)
+                            end
+                            
+                            wait(2)
+                            
+                            -- Paso 3: Ir a la zona de inicio de raids
                             pcall(function()
-                                -- Primero comprar chip
-                                Remote:InvokeServer("RaidsNpc", "Select", Settings.SelectedRaid)
-                                wait(1)
-                                -- Luego iniciar raid
+                                if Settings.CurrentSea == 2 then
+                                    -- Second Sea: Tubos azules en Hot and Cold
+                                    HumanoidRootPart.CFrame = CFrame.new(-6555, 299, -4896)
+                                elseif Settings.CurrentSea == 3 then
+                                    -- Third Sea: Plataformas amarillas en Castle on the Sea
+                                    HumanoidRootPart.CFrame = CFrame.new(-5411, 314, -2823)
+                                end
+                            end)
+                            
+                            wait(1.5)
+                            
+                            -- Paso 4: Iniciar la raid
+                            pcall(function()
                                 Remote:InvokeServer("Raids", "Start")
-                                wait(0.5)
-                                Notify("RAID", "Iniciando " .. Settings.SelectedRaid, 3)
+                                Notify("RAID", "Iniciando raid...", 3)
                             end)
                         end
                     end
@@ -2192,6 +2230,7 @@ local function GetQuestEnemy(enemyName)
     local shortestDistance = Settings.FarmDistance
     
     pcall(function()
+        -- Buscar primero en Workspace.Enemies (mobs spawneados)
         if game.Workspace:FindFirstChild("Enemies") then
             for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                 if v.Name == enemyName and v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
@@ -2200,6 +2239,41 @@ local function GetQuestEnemy(enemyName)
                         if distance < shortestDistance then
                             shortestDistance = distance
                             nearestEnemy = v
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- Si no se encontró en Enemies, buscar en ReplicatedStorage (spawns)
+        if not nearestEnemy and game.ReplicatedStorage:FindFirstChild("Remotes") then
+            if game.Workspace:FindFirstChild("_WorldOrigin") then
+                for _, v in pairs(game.Workspace._WorldOrigin.EnemySpawns:GetChildren()) do
+                    if v.Name == enemyName then
+                        -- El mob existe pero no está spawneado, intentar spawnearlo aproximándose
+                        local spawnCFrame = v.CFrame
+                        if spawnCFrame and (HumanoidRootPart.Position - spawnCFrame.Position).Magnitude < 200 then
+                            -- Aproximarse al spawn point
+                            TeleportToLocation(spawnCFrame)
+                            wait(2) -- Esperar a que spawnee
+                            -- Reintentar búsqueda
+                            if game.Workspace:FindFirstChild("Enemies") then
+                                for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+                                    if enemy.Name == enemyName and enemy:FindFirstChild("HumanoidRootPart") then
+                                        return enemy
+                                    end
+                                end
+                            end
+                        end
+                        break
+                    end
+                end
+            end
+        end
+    end)
+    
+    return nearestEnemy
+end
                         end
                     end
                 end
