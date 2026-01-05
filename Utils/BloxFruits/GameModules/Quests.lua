@@ -858,5 +858,95 @@ return {
         ["Candy Rebel"] = 8
       }
     }
+  },
+  -- SEA 3 NEW QUESTS (2600+)
+  TikiQuest4 = {
+    {
+      LevelReq = 2600,
+      Name = "Tyrant Guardsman",
+      Task = {
+        ["Tyrant Guardsman"] = 8
+      }
+    },
+    {
+      LevelReq = 2625,
+      Name = "Elite Headhunter",
+      Task = {
+        ["Elite Headhunter"] = 8
+      }
+    }
+  },
+  -- SEA 3 HAUNTED CASTLE EXPANSION
+  HauntedQuest3 = {
+    {
+      LevelReq = 2650,
+      Name = "Haunted Warrior",
+      Task = {
+        ["Haunted Warrior"] = 8
+      }
+    },
+    {
+      LevelReq = 2675,
+      Name = "Cursed Captain",
+      Task = {
+        ["Cursed Captain"] = 8
+      }
+    }
+  },
+  -- SEA 3 TEMPLE OF TIME
+  TempleQuest = {
+    {
+      LevelReq = 2700,
+      Name = "Temple Guardian",
+      Task = {
+        ["Temple Guardian"] = 8
+      }
+    },
+    {
+      LevelReq = 2725,
+      Name = "Ancient Sentinel",
+      Task = {
+        ["Ancient Sentinel"] = 8
+      }
+    }
+  },
+  -- SEA 1 MISSING QUESTS
+  BuggyQuest2 = {
+    {
+      LevelReq = 50,
+      Name = "Chief",
+      Task = {
+        Chief = 1
+      }
+    }
+  },
+  MarineQuest1 = {
+    {
+      LevelReq = 1,
+      Name = "Marine Recruit",
+      Task = {
+        ["Marine Recruit"] = 6
+      }
+    }
+  },
+  -- SEA 2 MISSING QUESTS
+  Area3Quest = {
+    {
+      LevelReq = 825,
+      Name = "Marine Commander",
+      Task = {
+        ["Marine Commander"] = 8
+      }
+    }
+  },
+  -- EXTRA BOSS QUESTS
+  GraveyardQuest = {
+    {
+      LevelReq = 1000,
+      Name = "Reaper Quest",
+      Task = {
+        ["Soul Reaper"] = 1
+      }
+    }
   }
 }
